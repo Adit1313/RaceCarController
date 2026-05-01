@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>opt_sys_id</name>
+  <version>1.0.0</version>
+  <description>Library for optimization-based system identification</description>
+  <maintainer email="vogellu@ethz.ch">Lukas Vogel</maintainer>
+  <author email="jwahlen@ethz.ch">Jonas Wahlen</author>
+  <author email="ahansson@ethz.ch">Alex Hansson</author>
+  <author email="simonmu@ethz.ch">Simon Muntwiler</author>
+  <author email="vogellu@ethz.ch">Lukas Vogel</author>
+  <license>BSD 2-Clause</license>
+
+  <!-- buildtool_depend: dependencies of the build process -->
+  <buildtool_depend>catkin</buildtool_depend>
+  <!-- depend: build, export, and execution dependency -->
+  <depend>rospy</depend>
+</package>

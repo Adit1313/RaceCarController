@@ -1,0 +1,10 @@
+syntax = "proto2";
+
+/* A basic ping message that can be used to both estimate RTT and ensure that
+   the connection is still alive. */
+message Ping {
+    /* Whether the ping message should be echoed. If this is set to true, the
+       connected device will respond with a Pong message that has `should_bounce`
+       set to false. */
+    required bool should_bounce = 1;
+}

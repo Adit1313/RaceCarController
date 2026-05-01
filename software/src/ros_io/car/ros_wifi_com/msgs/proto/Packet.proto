@@ -1,0 +1,22 @@
+syntax = "proto2";
+
+import "Ping.proto";
+import "SingleControlInput.proto";
+import "CarState.proto";
+import "CarReference.proto";
+
+message Packet
+{
+  oneof contents
+  {
+    Ping ping = 1;
+    SingleControlInput control_input = 2;
+    CarState car_state = 3;
+
+    /* Reference that a car-like robot should track. */
+    CarReference reference = 10;
+  }
+  /* Timestamp in microseconds of the current system.
+     Optional to ensure backward compatibility. */
+  optional int64 timestamp = 99;
+}

@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>rockpara_actuators</name>
+  <version>0.0.1</version>
+  <description>The rockpara_actuators package</description>
+
+  <author>Shengjie Hu</author>
+  <maintainer email="shhu@ethz.ch">Shengjie Hu</maintainer>
+
+  <license>BSD 2-Clause</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_depend>roslaunch</build_depend>
+  <build_export_depend>roscpp</build_export_depend>
+  <build_export_depend>std_msgs</build_export_depend>
+  <exec_depend>roscpp</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+
+  <depend>eigen_catkin</depend>
+  <depend>crs_msgs</depend>
+
+</package>

@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+
+function usage() {
+    printf "usage: source setup.sh <mode>\n"
+    printf "Set up the Chronos development environment.\n\n"
+    printf "   mode:       The mode to set up the development environment in.\n"
+    printf "    docker:     Set up a development container toolchain.\n"
+    printf "    native:     Set up a native toolchain.\n"
+    printf "    flash:      Set up only the flash toolchain.\n"
+    printf "    -h, --help: Show this help message and exit.\n"
+}
+
+# Check if the script is being run or sourced (must source for idf.py to be exported)
+if [ "$0" = "$BASH_SOURCE" ]; then
+    echo "Don't run $0, source it: . $0"
+    exit 1
+fi
+
+# Check that we're in the root folder of the project
+if [[ ! -f docker-compose.yaml ]]; then
+    printf "Cannot run setup script in this context. Switch to root project folder.\n"
+    return 1
+fi
+
+# If no arguments are provided, show usage and exit
+if [ -z "$1" ]; then
+    usage
+    return 1
+fi
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    # If the first argument is -h or --help, show usage and exit
+    usage
+    return 0
+
+elif [ "$1" = "native" ]; then
+    # Make sure all tools and dependencies are up to date
+    git submodule update --init --recursive
+
+    # Invoke ESP-IDF install script
+    mkdir -p lib/esp-idf-tools
+    export IDF_PATH=$(cd lib/esp-idf; pwd)
+    export IDF_TOOLS_PATH=$(cd lib/esp-idf-tools; pwd)
+
+    # Execute ESP-IDF install script, will install to lib/esp-idf/tools subdirectory
+    ./lib/esp-idf/install.sh
+    source ./lib/esp-idf/export.sh
+
+    # Install Python dependencies into the venv from ESP-IDF
+    pip install protobuf grpcio-tools
+
+elif [ "$1" = "docker" ]; then
+    # Check if Docker is installed
+    if ! command -v docker &> /dev/null; then
+        echo "Docker is not installed. Please install Docker and try again."
+        return 1
+    fi
+
+    # Create a virtual environment for esptool
+    python3 -m venv .venv
+    source .venv/bin/activate
+    pip install -r requirements.txt
+
+    ./build.sh
+
+    printf "Use esptool.py to flash the built binary.\n"
+elif [ "$1" = "flash" ]; then
+    # Create a virtual environment for esptool
+    python3 -m venv .flash_env
+    source .flash_env/bin/activate
+    pip install -r requirements.txt
+
+    printf "Use esptool.py to flash the built binary.\n"
+else
+    echo "Invalid option '$1'."
+    usage
+    return 1
+fi
+
+return 0

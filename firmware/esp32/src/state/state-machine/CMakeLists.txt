@@ -1,0 +1,10 @@
+idf_component_register(
+    SRCS
+        "state-machine.cpp"
+    INCLUDE_DIRS
+        "include"
+    REQUIRES
+        config-server
+        control-loop
+        wifi
+)

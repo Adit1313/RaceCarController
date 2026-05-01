@@ -1,0 +1,12 @@
+idf_component_register(
+    SRCS
+        "dc-motor.cpp"
+    INCLUDE_DIRS
+        "include"
+    REQUIRES
+        main
+        interfaces
+        util
+        driver
+        esp_rom
+)

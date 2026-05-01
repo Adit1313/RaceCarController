@@ -1,0 +1,42 @@
+# Description of configuration files can be found at "https://gitlab.ethz.ch/ics-group/projects/andrea/crs-2.0/-/wikis/ros-configuration"
+state_type: rocket
+input_type: rocket
+
+sensors:
+  sensor_names: ["full_state"]
+  full_state:
+    # R:
+    #   value: [[0.001], [0.001], [0.001]]
+    #   is_diag: true
+    frequency: 200 # Hz
+    key: full_state # optional, if not set use name of sensor
+    measurement_noise:
+      type: none
+    delay: 0.0
+
+initial_state:
+  [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.01,
+    0.01,
+    10.0,
+    0.0,
+    0.0,
+    0.0,
+  ]
+initial_input: [10.0, 0.0, 0.0, 0.0]
+
+frequency: 50 #Hz, speed of simulator
+
+# Not yet implemented
+input_delay: 0.00 # input delay in seconds

@@ -1,0 +1,108 @@
+state_type: pacejka_car
+input_type: pacejka_car
+
+controller_type: MPCC_ZOGPMPC
+max_rate: 30
+control_delay: 0.00
+
+# Experiment params
+load_gp: false
+load_data: false
+cautious_gp: false
+inducing_gp: false
+data_processing_mode: none # none, record, learn
+num_rti_iter: 1
+experiment_name: no_mm
+
+# Standard params
+log_controller_node_properties:
+  solve_time_averager:
+    solve_times: [
+      "total",
+      "preparation",
+      "feedback"
+    ]
+  controller:
+    state: [
+      "current_state",
+    ]
+    input: [
+      "current_control_input"
+    ]
+    constraint_value: [
+      "current_constraint_value",
+      "current_state_x",
+      "current_state_y",
+      "current_track_ref_x",
+      "current_track_ref_y",
+    ]
+    cost_value: [
+      "current_stage_cost_value",
+      "current_stage_cost_value_y",
+      "current_stage_cost_value_W",
+    ]
+    optimizer: [
+      "current_sqp_iterations",
+      "current_residuals",
+      "current_optimizer_state",
+      "current_optimizer_input",
+      "current_optimizer_ref",
+    ]
+terminate_after_n_solves: 3000
+
+controller_params:
+  Q1: 1.0 # 50.0
+  Q2: 200
+  R1: 0.1
+  R2: 0.3
+  R3: 0.2
+  q: 2.5 # 2.5
+  lag_compensation_time: 0.002 #0.02
+  solver_type: ACADOS
+
+  gp_params:
+    input_feature_selection: [0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0] # [9 states, 3 inputs]
+    load_data_keep_idxs: [0, 3000]
+    max_num_data_points: 400
+    num_inducing_points_if_inducing_gp: 10
+    hyperparameters:
+      likelihood.task_noises:
+        [0.0001, 0.0001, 0.0783]
+      kernel.lengthscale:
+        [  #  vx      vy      dyaw    T       steer
+          [[13.1498, 16.3301, 15.1622, 7.5505, 16.8039]],
+          [[15.0484, 15.6341, 13.2193, 14.2469, 7.6535]],
+          [[15.5188, 16.2151, 9.1628, 14.2396, 7.5373]],
+        ]
+      kernel.outputscale:
+        [0.0598, 0.0596, 0.1997]
+
+# no model params -> use same model_params as in the sim model
+
+# Visualization parameters for mpc visualizer
+visualizer:
+  type: mpc
+  rate: 10
+
+  # Visualizer specific  parameters
+  frame_id: crs_frame # default
+  namespace: mpc # default
+
+  use_arrows: true # If true, use arrows to visualize planned and reference yaw angle. This option is a lot slower and may introduce visual lags
+
+  min_velocity: 0.5 # Min velocity for visualization (this or below gets mapped to blue)
+  max_velocity: 2.0 # Max velocity for visualization (this or above gets mapped to red)
+
+  planned:
+    size_x: 0.03 # 0.07 for arrows
+    size_y: 0.03 # 0.02 for arrows
+    size_z: 0.03 # 0.02 for arrows
+
+  reference:
+    r: 1
+    g: 0
+    b: 0
+    a: 1
+    size_x: 0.03 # 0.07 for arrows
+    size_y: 0.03 # 0.02 for arrows
+    size_z: 0.03 # 0.02 for arrows

@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>rocket_6_dof_model</name>
+  <version>0.0.1</version>
+  <description>Implements the system dynamics as described in arXiv:2103.04709</description>
+
+  <author email="naefjo@ethz.ch">TODO</author>
+  <maintainer email="naefjo@ethz.ch">TODO</maintainer>
+
+  <license>BSD 2-Clause </license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <buildtool_depend>catkin_simple</buildtool_depend>
+
+  <depend>eigen_catkin</depend>
+  <depend>yaml_cpp_catkin</depend>
+
+  <depend>dynamic_models</depend>
+
+  <export></export>
+</package>

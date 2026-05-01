@@ -1,0 +1,186 @@
+<launch>
+    <!-- =================================================================
+                         User Input Arguments
+    ================================================================= -->
+
+    <arg name = "namespace"           default = "VOGEL"     doc = "Namespace of all the nodes. Use this to launch different cars. "/>
+    <arg name = "experiment_name"     default = "real_world_mpc" doc = "Name of the experiment folder that contains all .yaml configurations of the components "/>
+
+    <arg name = "view_rviz"           default = "true"        doc = "If true, starts an rviz node for visualization "/>
+    <arg name = "view_plotjuggler"    default = "false"       doc = "If true, starts a plotjuggler node for plotting. " />
+    <arg name = "use_backtracker"     default = "false"        doc = "If true, uses a backtracker as defined in the backtracker.yaml config to recover from crashes "/>
+    <arg name = "use_battery_monitor" default = "true"        doc = "If true, starts a battery monitor that will issue warnings if a car's battery runs low." />
+    <arg name = "use_safety_filter"   default = "false"      doc = "if true, loads safety filter" />
+
+    <arg name = "use_velocity_control" default = "false"    doc = "If true, uses the velocity control bridge to control the car."/>
+    <arg name = "track_name"          default = "FREIBURG_FULL_TRACK"  doc = "Name of the track that should be loaded. "/>
+
+    <arg name = "gt_topic"            default = "car_state_converter/gt_state"        doc = "Topic where the ground truth state is published" />
+    <arg name = "bypass_estimator"    default = "false"       doc = "If true, bypasses the state estimation and directly uses the gt state of the gt_topic "/>
+
+    <arg name = "control_package"     default = "ros_controllers"   doc = "Selected controller packaged. Chose from 'ros_controllers', 'rospy_controllers'" />
+
+    <!-- Recording arguments  -->
+    <arg name = "record_bag"          default = "false"        doc = "if true, recoard a .bag file with all topics"/>
+    <arg name = "copy_config"         default = "false"        doc = "if true, backs up all .yaml configurations on execution" />
+
+    <!-- Motion Capture System arguments -->
+    <!-- Set one of the following to true. -->
+    <arg name="use_vicon"             default = "false" />
+    <arg name="use_qualisys"          default = "false" />
+    <arg name="use_lighthouse"        default = "true" />
+
+    <!-- Names of the objects as defined in the Motion Capture Software. -->
+    <arg name = "car_object"          default = "$(arg namespace)" />
+    <arg name = "track_object"        default = "$(arg track_name)" />
+    <arg name = "mocap_namespace"     default = "mocap" />
+
+    <!-- Transform frame names -->
+    <arg name="world_frame"           default = "world" />
+
+    <arg name = "track_frame"       default = "/vicon/$(arg track_object)/$(arg track_object)" if = "$(arg use_vicon)"/>
+    <arg name = "track_frame"       default = "$(arg track_object)" if = "$(arg use_qualisys)" />
+    <arg name = "track_frame"       default = "$(arg track_object)" if = "$(arg use_lighthouse)" />
+
+    <!--   ___
+         /     \
+        | STOP  |   Only change other arguments if you do know what you are doing. You have been warned!
+         \ ___ /
+           ||
+           ||
+           ||
+        ~~~~~~~
+    -->
+
+    <!-- Improved log format for the ROS console. Example: [ INFO – car1/ros_wifi_com/ ] (12:34:56): Hello World! -->
+    <env name = "ROSCONSOLE_FORMAT" value = "[${severity} – ${node}/] (${time}): ${message}"/>
+
+    <!-- =================================================================
+                        Remap Controller State Argument
+        ================================================================= -->
+
+    <arg name = "control_input_topic" default = "control_input"/>
+
+    <arg name = "mocap_topic"         default = "/vicon/$(arg namespace)/$(arg namespace)" if = "$(arg use_vicon)" />
+    <arg name = "mocap_topic"         default = "/$(arg mocap_namespace)/$(arg namespace)" if = "$(arg use_qualisys)" />
+    <arg name = "mocap_topic"         default = "unused" if = "$(arg use_lighthouse)" />
+
+    <!-- if sensor_filt the estimator uses filtered sensor measurement from python node. If sensor, then uses unfiltered measurement.-->
+    <arg name = "imu_topic"           default = "imu_filt"/>
+    <arg name = "imu_yaw_rate_topic"  default = "imu_filt" />
+    <arg name = "wheel_encoder_topic" default = "wheel_encoders_filt"/>
+    <arg name = "lighthouse_topic"    default = "lighthouse"/>
+
+    <arg name = "control_state_topic"  default = "$(arg gt_topic)"    if     = "$(eval arg('bypass_estimator') == true)"/>
+    <arg name = "control_state_topic"  default = "estimation_node/best_state"   unless = "$(eval arg('bypass_estimator') == true)"/>
+
+    <!-- =================================================================
+                    Load the configuration files
+        ================================================================= -->
+
+    <arg name = "experiment_path"       default = "$(eval find('crs_launch') + '/../../../experiments/' + arg('experiment_name'))" />
+    <arg name = "model_config"          default = "$(arg experiment_path)/model.yaml" />
+    <arg name = "simulator_config"      default = "$(arg experiment_path)/simulator.yaml" />
+    <arg name = "controller_config"     default = "$(arg experiment_path)/controller.yaml" />
+    <arg name = "visualizer_config"     default = "$(arg experiment_path)/visualizer.yaml" />
+    <arg name = "backtracker_config"    default = "$(arg experiment_path)/backtracker.yaml" />
+    <arg name = "estimator_config"      default = "$(arg experiment_path)/estimator.yaml" />
+    <arg name = "safety_filter_config"  default = "$(arg experiment_path)/safety_filter.yaml" />
+
+
+    <group ns = "$(arg namespace)">
+
+        <!-- =================================================================
+                           Start the qualisys republisher node
+             ================================================================= -->
+        <include file="$(find ros_tf_republisher)/launch/default_car_state_converter.launch">
+            <arg name = "model_name" value="$(arg namespace)" />
+        </include>
+    </group>
+
+
+    <group ns = "$(arg namespace)">
+
+        <arg name="wifi_com_input_topic" default="control_input" if = "$(eval not arg('use_velocity_control'))" />
+        <arg name="wifi_com_input_topic" default="velocity_input" if = "$(arg use_velocity_control)" />
+
+
+    <!-- =================================================================
+                        Start the wifi com node
+         ================================================================= -->
+        <include file="$(find ros_wifi_com)/launch/wifi_com_default.launch">
+            <arg name = "input_topic" value = "$(arg wifi_com_input_topic)" />
+        </include>
+    </group>
+
+    <!-- =================================================================
+                    Start the motion capture system node
+    ================================================================= -->
+
+    <group if = "$(arg use_vicon)">
+        <include file="$(find crs_launch)/launch/vicon_bridge_default.launch" />
+    </group>
+
+    <group if = "$(arg use_qualisys)">
+        <include file="$(find crs_launch)/launch/qualisys_bridge_default.launch">
+            <arg name = "world_frame" default = "$(arg world_frame)" />
+        </include>
+
+        <!-- Per transform that the Qualisys bridge publishes on /tf we need
+             a remapping node that remaps it to /mocap/topic_name -->
+
+        <include file = "$(find ros_tf_republisher)/launch/default.launch">
+            <arg name = "namespace" default = "$(arg mocap_namespace)" />
+        </include>
+    </group>
+
+    <!-- Lighthouse does not need a node to run – the estimator subscribes to
+         the published frames from wifi_com. -->
+
+    <group ns = "$(arg namespace)" if = "$(arg use_battery_monitor)">
+
+    <!-- =================================================================
+                    Start the battery monitor
+    ================================================================= -->
+        <include file="$(find ros_battery_monitor)/launch/default.launch" />
+    </group>
+
+    <!-- =================================================================
+                    Start the controlling framework
+        ================================================================= -->
+    <include file="$(find crs_launch)/launch/crs.launch">
+        <arg name = "namespace"            value = "$(arg namespace)"/>
+        <arg name = "view_rviz"            value = "$(arg view_rviz)"/>
+        <arg name = "view_plotjuggler"     value = "$(arg view_plotjuggler)" />
+        <arg name = "use_backtracker"      value = "$(arg use_backtracker)"/>
+        <arg name = "use_velocity_control_bridge" value = "$(arg use_velocity_control)"/>
+        <arg name = "track_name"           value = "$(arg track_name)"/>
+        <arg name = "copy_config"          value = "$(arg copy_config)"/>
+        <arg name = "record_bag"           value = "$(arg record_bag)"/>
+        <arg name = "run_type"             value = "real"/>
+
+        <arg name="world_frame"            value="$(arg world_frame)" />
+        <arg name="track_frame"            value="$(arg track_frame)" />
+
+        <arg name = "control_state_topic"  value = "$(arg control_state_topic)"/>
+        <arg name = "control_input_topic"  value = "$(arg control_input_topic)"/>
+        <arg name = "mocap_topic"          value = "$(arg mocap_topic)"/>
+        <arg name = "imu_topic"            value = "$(arg imu_topic)"/>
+        <arg name = "wheel_encoder_topic"  value = "$(arg wheel_encoder_topic)"/>
+        <arg name = "imu_yaw_rate_topic"   value = "$(arg imu_yaw_rate_topic)" />
+        <arg name = "lighthouse_topic"     value = "$(arg lighthouse_topic)"/>
+
+        <arg name = "model_config"         value = "$(arg model_config)"/>
+        <arg name = "simulator_config"     value = "$(arg simulator_config)"/>
+        <arg name = "controller_config"    value = "$(arg controller_config)"/>
+        <arg name = "visualizer_config"    value = "$(arg visualizer_config)"/>
+        <arg name = "backtracker_config"   value = "$(arg backtracker_config)"/>
+        <arg name = "estimator_config"     value = "$(arg estimator_config)"/>
+        <arg name = "use_safety_filter"    value = "$(arg use_safety_filter)"/>
+        <arg name = "safety_filter_config" value = "$(arg safety_filter_config)"/>
+
+        <arg name = "disable_estimator"    value = "$(arg bypass_estimator)" />
+        <arg name = "gt_topic"             value = "$(arg gt_topic)"/>
+        <arg name = "control_package"      value = "$(arg control_package)"/>
+    </include>
+</launch>

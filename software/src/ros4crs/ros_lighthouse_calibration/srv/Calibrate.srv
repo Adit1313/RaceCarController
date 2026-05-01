@@ -1,0 +1,8 @@
+# Service for calibrating a Lighthouse base station based on metadata and angle-point correspondences.
+# Both arrays should be sorted as [x_0, y_0, x_1, y_1, ...]
+BasestationInfo base_station
+float32[] angles                 # n*2 array of the sweep angles of the two planes in radians
+float32[] points                 # n*2 array of the corresponding points in the track x-y frame
+geometry_msgs/Pose initial_guess # Initial guess for the base station pose
+---
+geometry_msgs/Pose pose          # The calibrated pose of the base station

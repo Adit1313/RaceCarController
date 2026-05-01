@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>acados_kinematic_tracking_mpc_solver</name>
+  <version>0.0.1</version>
+  <description> acados_kinematic_tracking_solver package </description>
+
+  <author email="peberhard@ethz.ch">Patrick Benito</author>
+  <maintainer email="peberhard@ethz.ch">Patrick Benito</maintainer>
+
+  <license>BSD 2-Clause </license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <buildtool_depend>catkin_simple</buildtool_depend>
+  <depend>kinematic_model</depend>
+  <depend>mpc_solvers</depend>
+  <depend>acados_catkin</depend>
+
+  <export></export>
+</package>

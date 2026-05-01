@@ -1,0 +1,22 @@
+syntax = "proto2";
+
+/**
+ * A message used to send a reference to a car-like robot.
+ */
+message CarReference {
+
+  /** The reference for the throttle actuator. */
+  oneof throttle_reference {
+    float throttle = 1;               // Throttle value in the range [-1, 1]
+    float longitudinal_velocity = 2;  // Longitudinal velocity value [m/s]
+  }
+  reserved 3 to 10;   // Reserved for future use
+
+  /** The reference for the steering actuator. */
+  oneof steering_reference {
+    uint32 voltage = 11;              // Steer potentiometer voltage [mV]
+    float angle = 12;                 // Steer angle [rad]
+  }
+  reserved 13 to 20;                  // Reserved for future use
+
+}

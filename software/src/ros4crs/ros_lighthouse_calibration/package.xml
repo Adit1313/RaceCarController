@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>ros_lighthouse_calibration</name>
+  <version>1.0.0</version>
+  <description>Package to find the pose of Lighthouse 2.0 base stations interactively</description>
+
+  <author email="tobias.bodewig@mars.uni-freiburg.de">Tobias Bodewig</author>
+  <maintainer email="vogellu@ethz.ch">Lukas Vogel</maintainer>
+
+  <license>BSD 2-Clause</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <buildtool_depend>catkin_simple</buildtool_depend>
+
+  <!-- Message building and running -->
+  <build_depend>message_generation</build_depend>
+  <exec_depend>message_runtime</exec_depend>
+  <depend>geometry_msgs</depend>
+
+  <depend>tf2</depend>
+  <depend>tf2_ros</depend>
+
+  <depend>roscpp</depend>
+  <depend>crs_msgs</depend>
+  <depend>eigen_catkin</depend>
+  <depend>ros_crs_utils</depend>
+
+  <!-- For visualizing the tracks -->
+  <depend>track_generation</depend>
+  <depend>car_track_visualizer</depend>
+  <export></export>
+</package>

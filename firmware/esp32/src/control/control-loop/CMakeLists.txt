@@ -1,0 +1,18 @@
+idf_component_register(
+    SRCS
+        "control.cpp"
+        "drive-controllers.cpp"
+        "bang-bang.cpp"
+    INCLUDE_DIRS
+        "include"
+    REQUIRES
+        communication-layer
+        control-types
+        interfaces
+        estimation
+        sensors
+        state-machine
+        nvs-manager
+        util
+        rtos
+)
