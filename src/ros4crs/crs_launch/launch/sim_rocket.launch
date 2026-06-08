@@ -1,0 +1,130 @@
+<launch>
+     <!-- =================================================================
+                            User Input Arguments
+         ================================================================= -->
+
+    <arg name = "namespace"           default = "rocket_1"              doc = "Namespace of all the nodes. Use this to launch different cars. "/>
+    <arg name = "view_rviz"           default = "true"                  doc = "If true, starts an rviz node for visualization "/>
+    <arg name = "experiment_name"     default = "rocket_pid"   doc = "Name of the experiment folder that contains all .yaml configurations of the components "/>
+
+    <!-- Recording arguments  -->
+    <arg name = "record_bag"          default = "false"                 doc = "if true, recoard a .bag file with all topics"/>
+    <arg name = "copy_config"         default = "true"                  doc = "if true, backs up all .yaml configurations on execution" />
+
+    <arg name = "run_type"            default = "sim"                   doc = "identifier for run type (sim|real|...). This is used to categorize backed up runs in folders" />
+
+    <!-- NOTE(@naefjo): this feature is not merged yet -->
+    <arg name = "start_mixer"         default = "false"                 doc = "whether the mixer node should be launched (not necessary for the sim but maybe useful for debugging)" />
+    <!-- NOTE(@naefjo): this feature is not merged yet -->
+    <arg name = "launch_planner"      default = "false"                 doc = "Whether the planning node should be launched which updates the rocket setpoint dynamically" />
+    <!-- NOTE(@naefjo): this feature is not merged yet -->
+    <arg name = "launch_bo"           default = "false"                 doc = "Whether the BO node should be launched which tries to find optimal controller parameters" />
+
+    <!--   ___
+         /     \
+        | STOP  |   Only change other arguments if you do know what you are doing. You have been warned!
+         \ ___ /
+           ||
+           ||
+           ||
+        ~~~~~~~
+    -->
+    <!-- =================================================================
+                            Topic Names Definitions
+         ================================================================= -->
+
+    <arg name = "control_input_topic"   default = "control_input"/>
+    <arg name = "full_state_topic"      default = "full_state"/>
+
+    <arg name = "control_state_topic"   default = "$(arg full_state_topic)" />
+
+    <arg name = "actuator_commands"     default = "actuator_commands" />
+
+    <!-- =================================================================
+                     Load the configuration files
+         ================================================================= -->
+
+    <arg name = "experiment_path"       default = "$(eval find('crs_launch') + '/../../../experiments/' + arg('experiment_name'))" />
+    <arg name = "model_config"          default = "$(arg experiment_path)/model.yaml" />
+    <arg name = "simulator_config"      default = "$(arg experiment_path)/rocket_simulator.yaml" />
+    <arg name = "controller_config"     default = "$(arg experiment_path)/rocket_controller.yaml" />
+    <arg name = "visualizer_config"     default = "$(arg experiment_path)/rocket_visualizer.yaml" />
+    <arg name = "mixer_config"          default = "$(arg experiment_path)/rocket_mixer.yaml" />
+
+
+     <group ns = "$(arg namespace)">
+
+        <!-- Load the Model -->
+        <group ns = "model">
+            <rosparam command = "load"  file = "$(arg model_config)" />
+        </group>
+
+        <!-- ==============================================================
+                               Controller Node
+             ===============================================================     -->
+        <include file = "$(find ros_controllers)/launch/default_rocket.launch">
+            <arg name = "controller_config_file"    value = "$(arg controller_config)" />
+            <arg name = "rocket_input_topic"        value = "$(arg control_input_topic)" />
+            <arg name = "rocket_state_topic"        value = "$(arg control_state_topic)" />
+            <!-- <arg name = "visualizer_topic"       value = "/controller_visualization" /> -->
+
+        </include>
+
+
+        <!-- Enable controller from the start, otherwise it will just fall into the endless void -->
+        <node pkg="rostopic" type="rostopic" name="publish_armed_state"
+            args="pub /$(arg namespace)/controller_node/controller_settings crs_msgs/bool_array_stamped '{header: {seq: 0, stamp: {secs: 0, nsecs: 0}, frame_id: ''}, data: [true, true]}'"/>
+
+
+
+        <!-- ==============================================================
+                               Visualization Node
+             ==============================================================     -->
+        <include file = "$(find rocket_visualizer)/launch/default.launch" if = "$(arg view_rviz)">
+            <arg name = "visualizer_config"         value = "$(arg visualizer_config)" />
+            <arg name = "namespace"                 value = "$(arg namespace)" />
+            <arg name = "gt_rocket_state_topic"     value = "ros_simulator/gt_state" />
+            <arg name = "est_rocket_state_topic"    value = "estimation_node/best_state" />
+            <arg name = "output_topic"              value = "/rocket_info" />
+        </include>
+
+
+        <include file = "$(find ros_mixers)/launch/default_rocket.launch" if = "$(arg start_mixer)" >
+            <arg name = "high_level_command_topic"  value = "$(arg control_input_topic)" />
+            <arg name = "low_level_command_topic"   value = "$(arg actuator_commands)" />
+            <arg name = "rocket_state_topic"        value = "$(arg full_state_topic)" />
+            <arg name = "mixer_config_file"         value = "$(arg mixer_config)" />
+        </include>
+
+        <!-- Start Backtracker Node -->
+        <include file = "$(find ros_planners)/launch/rocket_default.launch" if = "$(arg launch_planner)">
+            <arg name = "rocket_state_topic"        value = "$(arg control_state_topic)" />
+            <arg name = "trajectory_topic"   value = "trajectory" />
+        </include>
+    </group>
+
+    <node pkg = "rviz" name = "rviz" type = "rviz" args = "-d $(find rocket_visualizer)/config/rocket.rviz" if = "$(arg view_rviz)" />
+
+    <include file = "$(find rocket_bo)/launch/rocket_default.launch" if = "$(arg launch_bo)">
+        <arg name = "topic_rocket_state"  value = "/$(arg namespace)/$(arg full_state_topic)" />
+        <arg name = "topic_control_setpoints"   value = "/$(arg namespace)/controller_node/controller_debug" />
+        <arg name = "topic_control_settings"   value = "/$(arg namespace)/controller_node/controller_settings" />
+    </include>
+
+
+
+
+
+    <!-- =================================================================
+                       Start the simulator node
+         ================================================================= -->
+    <group ns = "$(arg namespace)">
+        <include file = "$(find ros_simulator)/launch/default_rocket.launch">
+            <arg name = "model_config"      value = "$(arg model_config)" />
+            <arg name = "simulator_config"  value = "$(arg simulator_config)" />
+            <arg name = "control_input"     value = "$(arg control_input_topic)"/>
+            <arg name = "full_state_topic"  value = "$(arg full_state_topic)"/>
+            <arg name = "gt_state_topic"    value = "ros_simulator/gt_state"/>
+        </include>
+    </group>
+</launch>

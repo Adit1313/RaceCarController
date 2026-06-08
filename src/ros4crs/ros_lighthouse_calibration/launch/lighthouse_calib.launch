@@ -1,0 +1,32 @@
+<launch>
+    <!-- =================================================================
+                         User Input Arguments
+    ================================================================= -->
+
+    <arg name = "namespace"           default = "car1"  doc = "Namespace of all the nodes. Use this to launch different cars. "/>
+
+    <!-- The Lighthouse calibration node uses a solver that can be sensitive to initial conditions.
+         When the solver fails to find a solution, the node dumps all measured values into a configuration
+         that may be loaded instead of measuring everything again. -->
+    <arg name = "use_config"   default = "true"
+         doc = "Load the calibration config from `calibration_config_path`."/>
+    <arg name = "config_path"  default = "$(find ros_lighthouse_calibration)/config/lighthouse_calibration.yaml"
+         doc = "Path to a calibration configuration." />
+
+    <group ns = "$(arg namespace)">
+
+        <!-- =================================================================
+                        Start the wifi com node
+            ================================================================= -->
+        <include file="$(find ros_wifi_com)/launch/wifi_com_default.launch" />
+
+        <!-- =================================================================
+                        Start the lighthouse calibration node
+            ================================================================= -->
+        <include file="$(find ros_lighthouse_calibration)/launch/default.launch">
+            <arg name = "use_config" value="$(arg use_config)"/>
+            <arg name = "config_path" value="$(arg config_path)"/>
+        </include>
+    </group>
+
+</launch>

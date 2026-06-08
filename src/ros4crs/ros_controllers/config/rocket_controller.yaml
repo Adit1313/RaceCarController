@@ -1,0 +1,72 @@
+# Description of configuration files can be found at "https://gitlab.ethz.ch/ics-group/projects/andrea/crs-2.0/-/wikis/ros-configuration"
+state_type: rocket
+input_type: rocket
+
+controller_type: ROCKET_ALTITUDE
+allocation_type: BASE
+max_rate: 300.0 # loop rate of the attitude controller
+
+# visualization_rate: 10
+controller_params:
+  low_level_controller:
+    loop_rate: 300.0 # Make sure that this is the same as max_rate
+    attitude_p_gain_x: 5.4
+    attitude_p_gain_y: 5.4
+    attitude_p_gain_z: 5.4
+    rate_p_gain_x: 0.05
+    rate_p_gain_y: 1.5
+    rate_p_gain_z: 1.5
+    rate_i_gain_x: 0.0
+    rate_i_gain_y: 0.01
+    rate_i_gain_z: 0.01
+    rate_d_gain_x: 0.0
+    rate_d_gain_y: 0.01
+    rate_d_gain_z: 0.01
+    rate_i_limits_x: 0.1
+    rate_i_limits_y: 0.3
+    rate_i_limits_z: 0.3
+    derivative_filter_numerator: [0.14285714, 0.14285714]
+    derivative_filter_denominator: [1.0, -0.71428571]
+
+  high_level_controller:
+    loop_rate: 50.0
+    position_p_gain_x: 0.45
+    position_p_gain_y: 0.2
+    position_p_gain_z: 0.2
+    velocity_p_gain_x: 3.3
+    velocity_p_gain_y: 1.6
+    velocity_p_gain_z: 1.6
+    velocity_i_gain_x: 0.1
+    velocity_i_gain_y: 0.5
+    velocity_i_gain_z: 0.5
+    velocity_d_gain_x: 0.012
+    velocity_d_gain_y: 0.1
+    velocity_d_gain_z: 0.1
+    velocity_i_limits_x: 2.0
+    velocity_i_limits_y: 2.0
+    velocity_i_limits_z: 2.0
+    max_angle: 20.0
+
+allocator_params:
+  constraint_coefficients: [
+    0.01566232, 0.0038805,
+    -0.01405059, 0.30435571,
+    0.01536903, -0.32219933,
+    -0.01182221, 0.00391584
+  ]
+# visualizer:
+#   rate: 10
+#   type: last_reference
+#   # Visualizer specific  parameters
+#   frame_id: crs_frame # default
+#   namespace: pid # default
+
+#   use_arrows: false # If true, use arrows to visualize planned and reference yaw angle. This option is a lot slower and may introduce visual lags
+
+#   r: 1
+#   g: 0
+#   b: 0
+#   a: 1
+#   size_x: 0.05 # 0.07 for arrows
+#   size_y: 0.05 # 0.02 for arrows
+#   size_z: 0.05 # 0.02 for arrows

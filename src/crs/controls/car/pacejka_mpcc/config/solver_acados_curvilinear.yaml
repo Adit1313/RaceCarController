@@ -1,0 +1,40 @@
+# High level configuration for acados solver creation
+
+solver_creation:
+  N: 40 # Time Horizon
+  Ts: 0.033 # 30 Hz
+
+track:
+  track_width: 0.46
+  safety_margin: 0.04
+
+
+# State Bounds
+model_bounds:
+    s_min: 0.0
+    s_max: 5000.0
+
+    mu_min: -1.0
+    mu_max: 1.0
+
+    vx_min: 0.0
+    vx_max: 3.2
+
+    vy_min: -1.0
+    vy_max: 1.0
+
+    dr_min: -4.0
+    dr_max: 4.0
+
+    T_min: 0.0
+    T_max: 1.0
+
+    delta_min: -0.4
+    delta_max: 0.4
+
+
+    dT_min: -15.0
+    dT_max: 15.0
+
+    ddelta_min: -2.0
+    ddelta_max: 2.0

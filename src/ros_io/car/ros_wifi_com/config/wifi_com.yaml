@@ -1,0 +1,9 @@
+# Description of configuration files can be found at "https://gitlab.ethz.ch/ics-group/projects/andrea/crs-2.0/-/wikis/ros-configuration"
+udp_port: 20211
+
+# If clock synchronization is enabled, the measurements are timestamped with
+# the (approximate) time of the car's clock when taken instead of when received
+# on the host.
+synchronize_clocks: true
+
+use_velocity_reference: true

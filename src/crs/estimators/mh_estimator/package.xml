@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>mh_estimator</name>
+  <version>0.0.1</version>
+  <description> MHE package </description>
+
+  <author email="sabodmer@ethz.ch">Sabrina Bodmer</author>
+  <maintainer email="sabodmer@ethz.ch">Sabrina Bodmer</maintainer>
+
+  <license>BSD 2-Clause </license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <buildtool_depend>catkin_simple</buildtool_depend>
+
+  <depend>eigen_catkin</depend>
+  <depend>yaml_cpp_catkin</depend>
+
+  <depend>dynamic_models</depend>
+  <depend>pacejka_model</depend>
+  <depend>sensor_models</depend>
+  <depend>commons</depend>
+  <depend>estimators</depend>
+  <depend>kalman_estimator</depend>
+
+  <depend>mhe_solvers</depend>
+  <depend>acados_pacejka_mhe_solver</depend>
+
+  <export></export>
+</package>

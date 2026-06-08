@@ -1,0 +1,139 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+function up() {
+    option=$1
+    if [[ "$OSTYPE" == "linux-gnu"* ]]; then # Linux
+        if [[ -f "/etc/wsl.conf" || (-n "${WSL_DISTRO_NAME:-}" && "$WSL_DISTRO_NAME" == "Ubuntu")]]; then
+            printf "WSL2 detected.\n" # If WSL2_GUI_APPS_ENABLED=1 nothing to do here.
+        else
+            xhost +local:root || echo "Cannot connect to display. Run headless."
+        fi
+    elif [[ "$OSTYPE" == "darwin"* ]]; then # macOS
+        docker pull theasp/novnc || true # Pull the novnc image on macOS
+    else
+        printf "Unknown OS detected."
+        exit 1
+    fi
+    case $option in
+    -b | --build)
+        docker pull cturra/ntp || true # Pull the ntp image
+        COMPOSE_DOCKER_CLI_BUILD=1 DOCKER_BUILDKIT=1 docker compose up -d --pull never --build
+        ;;
+    -p | --pull)
+        docker pull cturra/ntp || true # Pull the ntp image
+        COMPOSE_DOCKER_CLI_BUILD=1 DOCKER_BUILDKIT=1 docker compose up -d --pull missing --no-build
+        ;;
+    *)
+        printf "usage: crs-docker up [-b/-p]\n"
+        printf "\noptions:\n\n"
+        printf "    -b | --build:    Always builds crs image from source.\n"
+        printf "    -p | --pull:     Pull crs image from repository.\n"
+        exit 1
+        ;;
+    esac
+    shift
+}
+
+function down() {
+    docker compose down
+    if [[ "$OSTYPE" == "linux-gnu"* ]]; then # Linux
+        xhost -local:root
+    elif [[ "$OSTYPE" == "darwin"* ]]; then # macOS
+        : # no-op, on macOS we use the novnc container to render the simulation
+    else
+        printf "Unknown OS detected."
+        exit 1
+    fi
+}
+
+function run() {
+    docker compose run --service-ports crs # still needs some refining!
+}
+
+function clean() {
+    # Since we not force -a it should not affect images that are used by any container
+    docker system prune
+    docker image rm "registry.ethz.ch/ics-group/projects/andrea/crs-2.0"
+}
+
+function clean_all() {
+    # Ask user to confirm as this will remove all images and containers (even non-crs images)
+    printf "\033[31mThis will remove all images and containers on the system (also non-crs images)!!\033[0m\n"
+    read -p "Do you want to continue (yes): " confirm
+    if [[ "$confirm" == "yes" ]]; then
+        docker system prune -a --volumes --force
+        printf "All Docker images and containers have been removed.\n"
+    else
+        printf "Clean cancelled. No images or containers were removed.\n"
+    fi
+}
+
+function attach() {
+    # Finding the correct container relies on the fact that above,
+    # the image is tagged with the name registry.ethz.ch/[...]/crs-2.0.
+    n_running=$(docker ps | grep 'crs-2.0' | wc -l | xargs)
+    if [ "${n_running}" -eq 0 ]; then
+        printf "There are no CRS container running.\n\n"
+        usage
+    elif [ "${n_running}" -eq 1 ]; then
+        container_id=$(docker ps | grep 'crs-2.0' | awk '{print $1}')
+        printf "Attaching to container with ID: ${container_id}\n"
+        docker exec -it ${container_id} bash
+    else
+        printf "There are multiple CRS container running. Stop all but one.\n"
+    fi
+}
+
+function pwd_is_root() {
+    if [[ -f Dockerfile && -f .dockerignore ]]; then
+        true
+    else
+        false
+    fi
+}
+
+function usage() {
+    printf "usage: crs-docker <command> [-h]\n"
+    printf "\nthere are the following commands:\n\n"
+    printf "    up [-b/-p]:  Starts docker container with CRS environment.\n"
+    printf "                 -b | --build: build CRS Docker image from scratch.\n"
+    printf "                 -p | --pull: pull CRS Docker image from registry.\n"
+    printf "    down:        Shuts down docker container.\n"
+    printf "    run:         Open interactive shell in container.\n"
+    printf "    clean:       Delete the previously built Docker image. 'crs-docker up' will rebuild the image.\n"
+    printf "    clean_all:   Delete all Docker images and containers on the system (also non-crs images).\n"
+    printf "    attach:      Attach to a running container (only works for a single running container).\n"
+}
+if [[ -z "${1-}" ]]; then
+    usage
+    exit 0
+fi
+
+while [[ -n "${1-}" ]]; do
+    if ! $(pwd_is_root); then
+        printf "Cannot run docker in this folder! Change to the highest-level CRS folder.\n"
+        exit 1
+    fi
+
+    case $1 in
+    up)
+        up "${2---build}"
+        shift
+        ;;
+    down) down ;;
+    run) run ;;
+    clean) clean ;;
+    clean_all) clean_all ;;
+    attach) attach ;;
+    -h | --help)
+        usage
+        exit 0
+        ;;
+    *)
+        usage
+        exit 1
+        ;;
+    esac
+    shift
+done

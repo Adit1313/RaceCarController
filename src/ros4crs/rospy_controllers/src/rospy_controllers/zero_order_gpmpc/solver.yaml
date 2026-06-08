@@ -1,0 +1,70 @@
+# High level configuration for acados solver creation
+
+solver_creation:
+  N: 40 # Time Horizon
+  Ts: 0.033333 # 30 Hz
+  cost:
+    zl: 5.0e+2 # unused
+    zu: 5.0e+2 # unused
+    Zl: 1.0e+2 # unused
+    Zu: 1.0e+2 # unused
+    zl_0: 5.0e+2 # slack penalties applied to initial state
+    zu_0: 5.0e+2
+    Zl_0: 1.0e+2
+    Zu_0: 1.0e+2
+    zl_e: 1.0e+2 # slack penalties applied to terminal state -> slacks are ramped up/down for intermediate stages
+    zu_e: 1.0e+2
+    Zl_e: 1.0e+2
+    Zu_e: 1.0e+2
+  solver_opts:
+    tol: 1.0e-4
+    levenberg_marquardt_sqp: 1.0e-1 # LM Hessian regularization used for SQP (if num_rti_iter > 1)
+    levenberg_marquardt_rti: 1.0e-1 # LM Hessian regularization used for SQP-RTI (if num_rti_iter = 1)
+
+  zoro_description:
+    P0_mat_diag: [1.0e-6, 1.0e-6, 1.0e-6, 1.0e-6, 1.0e-6, 1.0e-6, 1.0e-6, 1.0e-6, 1.0e-6] # diagonal values of initial state covariance
+    W_mat_diag: [0.0001, 0.0001, 0.0783] # diagonal values of process noise covariance
+    unc_jac_G_mat_idx: [0, 0, 0, 1, 1, 1, 0, 0, 0] # index of states that are affected by uncertainty (should match size of W_mat_diag)
+    backoff_scaling_gamma: 1.0 # scaling factor for backoff
+
+track:
+  track_width: 0.46
+  safety_margin: 0.01
+
+# State Bounds
+model_bounds:
+    x_min: -10.0
+    x_max: 10.0
+
+    y_min: -10.0
+    y_max: 10.0
+
+    yaw_min: -1000.0
+    yaw_max: 1000.0
+
+    vx_min: 0.0
+    vx_max: 3.2
+
+    vy_min: -2.0
+    vy_max: 2.0
+
+    dyaw_min: -4.0
+    dyaw_max: 4.0
+
+    delta_min: -0.3
+    delta_max: 0.3
+
+    T_min: 0.0
+    T_max: 1.0
+
+    theta_min: 0.0
+    theta_max: 1000.0
+
+    ddelta_min: -4.0
+    ddelta_max: 4.0
+
+    dT_min: -0.7
+    dT_max: 0.7
+
+    dtheta_min: 0.0
+    dtheta_max: 10.0

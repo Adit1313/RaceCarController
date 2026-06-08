@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<launch>
+    <arg name="config_file" default="$(find rockpara_telemetry)/config/rocket_default_params.yaml" doc="Path to the parameters yaml file" />
+    <arg name="topic_manual_commands" default="rockpara_actuators_node/manual_commands" />
+    <arg name="topic_arm" default="rockpara_actuators_node/arm" />
+    <arg name="topic_disarm" default="rockpara_actuators_node/disarm" />
+    <arg name="topic_manual_override" default="rockpara_actuators_node/manual_override" />
+    <arg name="topic_controller_settings" default="rockpara_actuators_node/controller_settings" />
+
+    <!-- maybe: namespace -->
+    <node pkg="rockpara_telemetry" name="rockpara_telemetry_node" type="rockpara_telemetry_node.py" output="screen">
+        <rosparam command="load" file="$(arg config_file)" />
+        <!-- topic remapping -->
+        <remap from="rockpara_telemetry_node/manual_commands" to="$(arg topic_manual_commands)" />
+        <remap from="rockpara_telemetry_node/arm" to="$(arg topic_arm)" />
+        <remap from="rockpara_telemetry_node/disarm" to="$(arg topic_disarm)" />
+        <remap from="rockpara_telemetry_node/manual_override" to="$(arg topic_manual_override)" />
+        <remap from="rockpara_telemetry_node/controller_settings" to="$(arg topic_controller_settings)" />
+    </node>
+</launch>

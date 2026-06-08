@@ -1,0 +1,87 @@
+image: registry.ethz.ch/ics-group/projects/andrea/crs-2.0:latest
+
+stages:
+  - format
+  - build
+  - test
+
+### =============================================================
+### ================     SET UP CACHING    ======================
+### =============================================================
+before_script:
+  - mkdir -p .ccache
+  - export CCACHE_BASEDIR=${PWD}
+  - export CCACHE_DIR=${PWD}/.ccache
+  - crs init # Init the workspace
+  - export PATH="$(catkin locate)/scripts:$PATH" # Make scripts detectable
+
+cache:
+  key: cache-ccache-$CI_COMMIT_REF_SLUG
+  fallback_keys:
+    - cache-ccache-$CI_DEFAULT_BRANCH
+    - cache-ccache-default
+  paths:
+    - .ccache
+
+### =============================================================
+### ==============     FORMATTING STAGE    ======================
+### =============================================================
+
+run formatters: # Check whether code adheres to the required formats
+  stage: format
+  script:
+    - pip3 install pre-commit && pre-commit install
+    - pre-commit run -a
+  retry: 0
+  tags:
+    - deep-thought
+
+### =============================================================
+### ================     BUILD STAGE    =========================
+### =============================================================
+
+build:
+  stage: build
+  script:
+    - catkin config --skiplist forces_pacejka_mpcc_solver
+    - catkin build --cmake-args -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
+
+  retry: 0
+  tags:
+    - deep-thought
+  needs: []
+
+  # Make build artifacts available to the test stage
+  artifacts:
+    paths:
+      - build
+      - devel
+    expire_in: 1 day    # Keep the build artifacts for 1 day
+
+
+### =============================================================
+### ================     TEST STAGE    =========================
+### =============================================================
+test: # build CRS inside docker image
+  stage: test
+  script:
+    - touch src/ros4crs/CATKIN_IGNORE # Do not build or test the ros packages
+    - touch src/ros_io/CATKIN_IGNORE # Can't test these because they depend on ros4crs :(
+    - python3 src/crs/sensor_models/car/pacejka_sensor_model/test/generate_jacobian.py
+    - python3 src/crs/sensor_models/car/pacejka_with_imu_bias_sensor_model/test/generate_jacobian.py
+    - catkin build --cmake-args -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
+    # NOTE(@naefjo): Source the devel folder for good measure
+    - source /builds/ics-group/projects/andrea/crsbuild/devel/setup.bash
+    # NOTE(@naefjo): Debug prints to figure out why yaml-cpp fails
+    - ls -lah /builds/ics-group/projects/andrea/crsbuild/build
+    - ls -lah /builds/ics-group/projects/andrea/crsbuild/devel
+    - ls -lah /builds/ics-group/projects/andrea/crsbuild/devel/include/yaml-cpp
+    - ls -lah /builds/ics-group/projects/andrea/crsbuild/devel/lib
+    - catkin run_tests
+  retry: 1
+  tags:
+    - deep-thought
+
+  needs:
+    - job: build
+      artifacts: true

@@ -1,0 +1,50 @@
+<launch>
+    <!-- =================================================================
+                         User Input Arguments
+    ================================================================= -->
+
+    <arg name = "namespace"           default = "car1"  doc = "Namespace of all the nodes. Use this to launch different cars. "/>
+
+    <!-- The Lighthouse calibration node uses a solver that can be sensitive to initial conditions.
+         When the solver fails to find a solution, the node dumps all measured values into a configuration
+         that may be loaded instead of measuring everything again. -->
+
+    <arg name = "config_path"  default = "$(find ros_lighthouse_calibration)/config/lighthouse_calibration.yaml"
+         doc = "Path to a calibration configuration." />
+    <arg name="visualize_calibration" default="true"
+         doc="Visualize the calibration results in Rviz." />
+
+    <!-- Additionally, the track may be visualized in addition to the markers, so that
+         a visual check reveals whether the calibration points have been entered correctly. -->
+    <arg name = "visualize_track"  default="true"      doc="Visualize the track." />
+    <arg name = "track_name"   default = "DEMO_TRACK"  doc="Name of the track to load." />
+    <arg name = "visualizer_config"     default = "$(find car_track_visualizer)/config/car_track_visualizer.yaml" />
+
+    <group ns = "$(arg namespace)">
+
+        <!-- =================================================================
+                        Start the wifi com node
+            ================================================================= -->
+        <include file="$(find ros_wifi_com)/launch/wifi_com_default.launch" />
+
+        <!-- =================================================================
+                        Start the lighthouse calibration node and the solver
+            ================================================================= -->
+        <include file="$(find ros_lighthouse_calibration)/launch/default.launch">
+            <arg name = "config_path" value="$(arg config_path)"/>
+            <arg name = "visualize_calibration" value="$(arg visualize_calibration)"/>
+        </include>
+
+        <!-- =================================================================
+                        Load the track parameters and visualizer
+            ================================================================= -->
+        <!-- Load the track configuration into the /track parameters. -->
+        <rosparam command = "load" file = "$(find track_generation)/tracks/$(arg track_name).yaml" />
+        <include file = "$(find car_track_visualizer)/launch/default.launch">
+            <arg name = "visualizer_config"   value = "$(arg visualizer_config)" />
+            <arg name = "namespace"           value = "$(arg namespace)" />
+            <arg name = "output_frame"        value = "world" />
+            <arg name = "track_topic"        value = "/track" />
+        </include>
+    </group>
+</launch>

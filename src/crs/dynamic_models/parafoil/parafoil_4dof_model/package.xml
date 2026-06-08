@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>parafoil_4dof_model</name>
+  <version>0.0.1</version>
+  <description>TODO </description>
+
+  <author email="norrisg@ethz.ch">Griffin Norris</author>
+  <maintainer email="norrisg@ethz.ch">Griffin Norris</maintainer>
+
+  <license>BSD 2-Clause </license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <buildtool_depend>catkin_simple</buildtool_depend>
+
+  <depend>eigen_catkin</depend>
+  <depend>yaml_cpp_catkin</depend>
+
+  <depend>dynamic_models</depend>
+
+  <export></export>
+</package>

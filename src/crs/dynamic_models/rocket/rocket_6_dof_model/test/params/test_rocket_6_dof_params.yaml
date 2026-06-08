@@ -1,0 +1,23 @@
+# Description of configuration files can be found at "https://gitlab.ethz.ch/ics-group/projects/andrea/crs-2.0/-/wikis/ros-configuration"
+# size params
+
+mass: 1.266
+gravity_constant: 9.81
+inertia_xx: 0.00210
+inertia_yy: 0.10000
+inertia_zz: 0.10000
+thrust_cog_offset: 0.42000
+thrust_magnitude_time_constant: 0.01000
+servo_angle_time_constant: 0.012
+
+# Lenght of the rod going to the gimbal [mm]
+gimbal_a: 5.0
+# Length of the rod which connects the servo to the gimbal [mm]
+gimbal_b: 35.2
+# Straight line distance between the joint connecting the servo-gimbal
+# rod to the gimbal and the center of the universal joint [mm]
+gimbal_c: 33.0
+# Distance between the universal joint and the rotation axis of the servo in the body yz-plane [mm]
+gimbal_d: 28.0
+# Distance along the body x-axis between the universal joint and the servo rotation axis [mm]
+gimbal_e: 35.2
