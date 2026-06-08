@@ -1,0 +1,46 @@
+state_type: pacejka_car
+input_type: pacejka_car
+
+controller_type: TRACKING_MPC
+max_rate: 30
+init_delay: 0 # time to wait for estimator to converge to init. position
+
+controller_params:
+  Q1: 180.0
+  Q2: 160.0
+  R1: 0.2
+  R2: 0.3
+  R3: 0.2
+  q: 3.5
+  lag_compensation_time: 0.02
+  solver_type: ACADOS
+  max_sqp_iterations: 1
+
+
+  steer_limit: 0.4
+
+visualizer:
+  rate: 10
+  type: mpc
+  # Visualizer specific  parameters
+  frame_id: crs_frame # default
+  namespace: mpc # default
+
+  use_arrows: false # If true, use arrows to visualize planned and reference yaw angle. This option is a lot slower and may introduce visual lags
+
+  double_min_velocity: 1.5 # Min velocity for visualization (this or below gets mapped to blue)
+  double_max_velocity: 2.5 # Max velocity for visualization (this or above gets mapped to red)
+
+  planned:
+    size_x: 0.04 # 0.07 for arrows
+    size_y: 0.04 # 0.02 for arrows
+    size_z: 0.04 # 0.02 for arrows
+
+  reference:
+    r: 1
+    g: 0
+    b: 0
+    a: 1
+    size_x: 0.04 # 0.07 for arrows
+    size_y: 0.04 # 0.02 for arrows
+    size_z: 0.04 # 0.02 for arrows
