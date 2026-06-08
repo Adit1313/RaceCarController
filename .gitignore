@@ -4,7 +4,7 @@ src/dependencies
 !*/src/dependencies/.rosinstall
 
 # Ignore all experiment configuration. Use git add -f to force add newly created experiments
-experiments/**
+
 
 # catkin workspace files
 devel/**

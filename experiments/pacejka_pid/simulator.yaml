@@ -1,0 +1,130 @@
+state_type: pacejka_car
+input_type: pacejka_car
+
+# process_noise:
+#   type: multivariate_gaussian
+#   seed: 42
+#   mean:
+#     value: [[0], [0], [0], [0], [0], [0]]
+
+sensors:
+  sensor_names: ["mocap", "imu_yaw_rate", "wheel_encoders", "lighthouse", "unified_lighthouse"]
+  mocap:
+    R:
+      value: [[0.0001], [0.0001], [0.0001]] #std of 1cm -> cov of 0.01*0.01=0.0001
+      is_diag: true
+    frequency: 200 # Hz
+    key: mocap # optional, if not set us e name of sensor
+    measurement_noise:
+      type: multivariate_gaussian
+      seed: 1
+      outlier_probability: 0.0
+      outlier_scale: 1
+      mean:
+        value: [[0], [0], [0]]
+    delay: 0.0
+
+  imu_yaw_rate:
+    R:
+      value: [[0.01]]
+      is_diag: true
+    frequency: 200 #Hz
+    key: imu_yaw_rate # optional, if not set use name of sensor
+    measurement_noise:
+      type: multivariate_gaussian
+      seed: 1
+      outlier_probability: 0.0
+      outlier_scale: 1
+      mean:
+        value: [[0]]
+    delay: 0.0
+
+  wheel_encoders:
+    R:
+      value: [[1], [1], [1], [1]]
+      is_diag: true
+    frequency: 200 #Hz
+    key: wheel_encoders # optional, if not set use name of sensor
+    measurement_noise:
+      type: multivariate_gaussian
+      seed: 1
+      outlier_probability: 0.0
+      outlier_scale: 1
+      mean:
+        value: [[0], [0], [0], [0]]
+    delay: 0.0
+
+  lighthouse:
+    frequency: 50 #Hz
+    sensor_pos:
+      value: [[0.035, 0.02, 0.035, 0.02], [0.015, 0.015, -0.015, -0.015]]
+    key: lighthouse
+    base_stations: ["bs0"]
+
+    bs0:
+      bs_ID: 0
+      R:
+        # value: [[0.0000101, 0.00001, 0.00001, 0.00001], [0.00001, 0.0000101, 0.00001, 0.00001], [0.00001, 0.00001, 0.0000101, 0.00001], [0.00001, 0.00001, 0.00001, 0.0000101]]
+        value: [[0.0000101, 0.00001, 0.00001, 0.00001],
+                 [0.00001, 0.0000101, 0.00001, 0.00001],
+                 [0.00001, 0.00001, 0.0000101, 0.00001],
+                 [0.00001, 0.00001, 0.00001, 0.0000101]]
+        is_diag: false
+      P_bs:
+        value: [[0.423652], [0.449405], [1.99268]]
+      R_bs:
+        value: [[-0.0939952, 0.993122, -0.0698045], [-0.0609725, -0.0757257, -0.995263], [-0.993704, -0.0892937, 0.067671]]
+      dt1: -0.0508728
+      dt2: 0.0464478
+    measurement_noise:
+      type: multivariate_gaussian
+      seed: 1
+      outlier_probability: 0.00
+      outlier_scale: 1
+      mean:
+        value: [[0], [0], [0], [0]]
+    delay: 0.0
+
+  unified_lighthouse:
+    frequency: 50 #Hz
+    sensor_pos:
+      value: [[0.035, 0.02, 0.035, 0.02], [0.015, 0.015, -0.015, -0.015]]
+    key: unified_lighthouse
+    base_stations: ["bs0"]
+
+    bs0:
+      bs_ID: 0
+      R:
+        value: [[0.0000101, 0.00001, 0.00001, 0.00001, 0, 0, 0, 0],
+                 [0.00001, 0.0000101, 0.00001, 0.00001, 0, 0, 0, 0],
+                 [0.00001, 0.00001, 0.0000101, 0.00001, 0, 0, 0, 0],
+                 [0.00001, 0.00001, 0.00001, 0.0000101, 0, 0, 0, 0],
+                 [0, 0, 0, 0, 0.0000101, 0.00001, 0.00001, 0.00001],
+                 [0, 0, 0, 0, 0.00001, 0.0000101, 0.00001, 0.00001],
+                 [0, 0, 0, 0, 0.00001, 0.00001, 0.0000101, 0.00001],
+                 [0, 0, 0, 0, 0.00001, 0.00001, 0.00001, 0.0000101]]
+        is_diag: false
+      P_bs:
+        value: [[0.423652], [0.449405], [1.99268]]
+      R_bs:
+        value: [[-0.0939952, 0.993122, -0.0698045], [-0.0609725, -0.0757257, -0.995263], [-0.993704, -0.0892937, 0.067671]]
+      dt1: -0.0508728
+      dt2: 0.0464478
+    measurement_noise:
+      type: multivariate_gaussian
+      seed: 1
+      outlier_probability: 0.000
+      outlier_scale: 1
+      mean:
+        value: [[0], [0], [0], [0], [0], [0], [0], [0]]
+    delay: 0.0
+
+
+initial_state: [0.15, -1.05, 0, 0.5, 0, 0]
+initial_input: [0.0, 0.2]
+
+frequency: 300 #Hz, speed of simulator
+
+# Not yet implemented
+input_delay: 0.01 # input delay in seconds
+do_collision_checks: false
