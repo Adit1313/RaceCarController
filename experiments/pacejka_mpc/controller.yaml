@@ -1,7 +1,7 @@
 state_type: pacejka_car
 input_type: pacejka_car
 
-controller_type: TRACKING_MPC
+controller_type: MPCC
 max_rate: 30
 init_delay: 0 # time to wait for estimator to converge to init. position
 
