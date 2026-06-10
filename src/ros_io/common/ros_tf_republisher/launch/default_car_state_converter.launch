@@ -1,0 +1,19 @@
+<launch>
+
+    <arg name="model_name"              default="VOGEL" />
+    <arg name="qualisys_track_topic"    default="/qualisys/DEMO_TRACK/pose" />
+    <arg name="qualisys_pose_topic"     default="/qualisys/$(arg model_name)/pose" />
+    <arg name="qualisys_twist_topic"    default="/qualisys/$(arg model_name)/velocity" />
+    <arg name="output_topic"            default="car_state_converter/gt_state" />
+    <arg name="state_converter_config"      default="$(find ros_tf_republisher)/config/car_state_converter_config.yaml" />
+
+
+    <node pkg="ros_tf_republisher" name="car_state_converter" type="car_state_converter" output="screen">
+        <rosparam command="load" file="$(arg state_converter_config)" />
+        <remap from="car_state_converter/track_pose"  to="$(arg qualisys_track_topic)" />
+        <remap from="car_state_converter/car_pose"  to="$(arg qualisys_pose_topic)" />
+        <remap from="car_state_converter/car_twist"  to="$(arg qualisys_twist_topic)" />
+        <remap from="car_state_converter/output_topic"     to="$(arg output_topic)" />
+    </node>
+
+</launch>

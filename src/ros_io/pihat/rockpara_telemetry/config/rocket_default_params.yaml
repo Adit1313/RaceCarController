@@ -1,0 +1,4 @@
+frequency: 60.0
+serial_address: "/dev/ttyAMA0"
+serial_baudrate: 57600
+serial_timeout: 0.01

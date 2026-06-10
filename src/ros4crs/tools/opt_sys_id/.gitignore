@@ -1,0 +1,7 @@
+# Ignore any new datasets added to the repository
+datasets/*
+rosbags/*
+
+# Ignore any generated figures
+figures/*
+!figures/.keep

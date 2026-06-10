@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>pihat_imu</name>
+  <version>0.0.1</version>
+  <description>The pihat_imu package</description>
+
+  <author>Lukas Brändli</author>
+  <maintainer email="brlukas@ethz.ch">Lukas Brändli</maintainer>
+
+  <license>BSD 2-Clause</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <buildtool_depend>catkin_simple</buildtool_depend>
+  <build_depend>geometry_msgs</build_depend>
+  <build_depend>roscpp</build_depend>
+  <build_export_depend>geometry_msgs</build_export_depend>
+  <build_export_depend>roscpp</build_export_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>roscpp</exec_depend>
+
+</package>

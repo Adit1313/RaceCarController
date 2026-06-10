@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>ros_wifi_com</name>
+  <version>0.0.1</version>
+  <description>The wifi_com package</description>
+
+  <!-- One maintainer tag required, multiple allowed, one person per tag -->
+  <!-- Example:  -->
+  <!-- <maintainer email="jane.doe@example.com">Jane Doe</maintainer> -->
+  <maintainer email="vogellu@ethz.ch">Lukas Vogel</maintainer>
+  <author>Lukas Vogel</author>
+
+  <license>BSD 2-Clause </license>
+
+  <author email="vogellu@ethz.ch">Lukas Vogel</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <buildtool_depend>catkin_simple</buildtool_depend>
+
+  <!-- Todo: this is copied from serial_com/packages.xml. Is this needed? -->
+
+  <build_depend>crs_msgs</build_depend>
+  <build_depend>roscpp</build_depend>
+  <build_export_depend>roscpp</build_export_depend>
+  <exec_depend>crs_msgs</exec_depend>
+  <exec_depend>roscpp</exec_depend>
+
+</package>

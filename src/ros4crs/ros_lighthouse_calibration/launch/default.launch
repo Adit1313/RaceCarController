@@ -1,0 +1,26 @@
+<launch>
+    <!-- The Lighthouse calibration node uses a solver that can be sensitive to initial conditions.
+         When the solver fails to find a solution, the node dumps all measured values into a configuration
+         that may be loaded instead of measuring everything again. -->
+    <arg name = "use_config"   default = "true"
+         doc = "Load the calibration config from `calibration_config_path`." />
+    <arg name = "config_path"  default = "$(find ros_lighthouse_calibration)/config/lighthouse_calibration.yaml"
+         doc = "Path to a calibration configuration." />
+    <arg name="visualize_calibration" default="true"
+         doc="Visualize the calibration results in Rviz." />
+
+     <!-- Node to manage the calibration and interactive data collection. -->
+    <rosparam command="load" file="$(arg config_path)"/>
+    <node pkg="ros_lighthouse_calibration" name="lighthouse_calibration_node" type="lighthouse_calibration_node" output="screen">
+        <param name="use_config" value="$(arg use_config)"/>
+    </node>
+
+    <!-- Service node that provides the solver. -->
+    <node pkg="ros_lighthouse_calibration" type="lighthouse_calibration_solver_node" name="lighthouse_calibration_solver_node"
+           output="screen" />
+
+    <!-- Optional visualization of calibration points. -->
+    <node pkg="rviz" type="rviz" name="rviz" args="-d $(find ros_lighthouse_calibration)/config/lighthouse_calibration.rviz"
+          required="false" if="$(arg visualize_calibration)"/>
+
+</launch>

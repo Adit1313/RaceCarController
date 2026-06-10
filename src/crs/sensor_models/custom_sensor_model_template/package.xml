@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>custom_sensor_model_template</name>
+  <version>0.0.1</version>
+  <description>Template for adding new sensor models</description>
+
+  <author email="naefjo@ethz.ch">Joshua Näf</author>
+  <maintainer email="naefjo@ethz.ch">Joshua Näf</maintainer>
+
+  <license>BSD 2-Clause </license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <buildtool_depend>catkin_simple</buildtool_depend>
+
+  <depend>dynamic_models</depend>
+  <depend>custom_model_template</depend>
+  <depend>sensor_models</depend>
+
+  <depend>eigen_catkin</depend>
+  <depend>yaml_cpp_catkin</depend>
+
+
+  <export>
+  </export>
+</package>

@@ -1,0 +1,12 @@
+<launch>
+    <arg name="trajectory_topic" default="controller_node/trajectory" />
+    <arg name="car_input_topic" default="car_input" />
+    <arg name="velocity_input_topic" default="velocity_input" />
+
+
+    <node pkg="ros_velocity_control_bridge" type="ros_velocity_control_bridge_node" name="velocity_control_bridge" output="screen">
+        <remap from="trajectory" to="$(arg trajectory_topic)" />
+        <remap from="car_input" to="$(arg car_input_topic)" />
+        <remap from="velocity_input" to="$(arg velocity_input_topic)" />
+    </node>
+</launch>
