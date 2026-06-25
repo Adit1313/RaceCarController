@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>pacejka_tracking_mpc</name>
+  <version>0.0.1</version>
+  <description> Tracking MPC formulation using the Pacejka car model </description>
+
+  <author email="rrahel@ethz.ch">Rahel Rickenbach</author>
+  <maintainer email="naefjo@ethz.ch">Joshua Näf</maintainer>
+
+  <license>BSD 2-Clause </license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <buildtool_depend>catkin_simple</buildtool_depend>
+
+  <depend>commons</depend>
+  <depend>acados_catkin</depend>
+  <depend>control_commons</depend>
+  <depend>pacejka_model</depend>
+  <export></export>
+</package>

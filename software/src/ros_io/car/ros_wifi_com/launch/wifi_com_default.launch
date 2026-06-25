@@ -1,0 +1,10 @@
+<launch>
+
+    <arg name="input_topic" default="control_input" />
+
+    <rosparam command="load" file="$(find ros_wifi_com)/config/wifi_com.yaml"/>
+    <node pkg="ros_wifi_com" name="wifi_com_node" type="wifi_com_node" output="screen">
+        <remap from="input" to="$(arg input_topic)" />
+    </node>
+
+</launch>

@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>parafoil_4dof_sensor_model</name>
+  <version>0.0.1</version>
+  <description>Sensor Model for the parafoil_4dof model</description>
+
+  <author email="norrisg@ethz.ch">Griffin Norris</author>
+  <maintainer email="norrisg@ethz.ch">Griffin Norris</maintainer>
+
+  <license>BSD 2-Clause </license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <buildtool_depend>catkin_simple</buildtool_depend>
+
+  <depend>dynamic_models</depend>
+  <depend>parafoil_4dof_model</depend>
+  <depend>sensor_models</depend>
+
+  <depend>eigen_catkin</depend>
+  <depend>yaml_cpp_catkin</depend>
+
+
+  <export>
+  </export>
+</package>

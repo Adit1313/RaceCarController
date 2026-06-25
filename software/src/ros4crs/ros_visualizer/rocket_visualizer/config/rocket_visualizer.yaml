@@ -1,0 +1,23 @@
+# Description of configuration files can be found at "https://gitlab.ethz.ch/ics-group/projects/andrea/crs-2.0/-/wikis/ros-configuration"
+# node params
+node_rate: 30 # hz
+
+trajectory:
+  show_past_est_trajectory: false
+  show_past_gt_trajectory: true
+  number_of_past_samples: -1
+
+estimate:
+  color:
+    r: 0
+    g: 0
+    b: 0.5
+    a: 1
+
+
+gt:
+  color:
+    r: 0
+    g: 0
+    b: 1
+    a: 1

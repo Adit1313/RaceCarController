@@ -1,0 +1,47 @@
+# Description of configuration files can be found at "https://gitlab.ethz.ch/ics-group/projects/andrea/crs-2.0/-/wikis/ros-configuration"
+
+# ============ THIS IS THE GROUND TRUTH MODEL FOR SIMULATION ============
+# If using ros, paramaters located at /model
+
+# type describes what type of model we want to use / should be loaded
+type: "pacejka_discrete"
+
+# Q (process noise covariance matrix)
+Q:
+  value:
+    [
+      [0.01, 0, 0, 0, 0, 0],
+      [0, 0.01, 0, 0, 0, 0],
+      [0, 0, 0.01, 0, 0, 0],
+      [0, 0, 0, 0.0001, 0, 0],
+      [0, 0, 0, 0, 0.0001, 0],
+      [0, 0, 0, 0, 0, 0.0001],
+    ]
+  is_diag: false
+
+model_params:
+  wheel_radius: 0.0175
+  car_width: 0.12
+
+  lr: 0.04866242
+  lf: 0.04448988
+  m: 0.24200000
+  I: 0.00165671
+
+  Df: 0.61455780
+  Cf: 1.48495800
+  Bf: 5.19600518
+
+  Dr: 0.98898878
+  Cr: 1.44614978
+  Br: 8.49942885
+
+  Cm1: 0.97511470
+  Cm2: 0.02578073
+  Cd0: 0.02477582
+  Cd1: 0.03031928
+  Cd2: 0.08473512
+
+  gamma: 0.50199235
+  tau: 0.1 # to make this compatible with kinematic model
+  eps: 0.2

@@ -1,0 +1,17 @@
+# Description of configuration files can be found at "https://gitlab.ethz.ch/ics-group/projects/andrea/crs-2.0/-/wikis/ros-configuration"
+
+# ============ THIS IS THE GROUND TRUTH MODEL FOR SIMULATION ============
+# If using ros, paramaters located at /model
+
+# type describes what type of model we want to use / should be loaded
+type: "imu_bias"
+
+# Q (process noise covariance matrix)
+Q:
+  value:
+    [
+      [0.000002, 0, 0],
+      [0, 0.000004, 0],
+      [0, 0, 0.000004],
+    ]
+  is_diag: false

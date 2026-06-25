@@ -1,0 +1,49 @@
+lighthouse_calibration_node:
+  # How many sweeps should be collected for each calibration point.
+  sweeps_per_point: 100
+  # Sensor postions relative to model center. These will be inserted into the calibration output.
+  sensor_pos:
+      value: [[0.045, 0.045, 0.075, 0.075], [0.0075, -0.0075, -0.0075, 0.0075]]
+  # Covariance matrix R of the sensor model. This will be inserted into the calibration output.
+  R:
+      value: [[0.000101, 0.0001, 0.0001, 0.0001], [0.0001, 0.000101, 0.0001, 0.0001], [0.0001, 0.0001, 0.000101, 0.0001], [0.0001, 0.0001, 0.0001, 0.000101]]
+
+  initial_condition:
+      # Initial guess of the base station's position in track frame for the IPOPT solver.
+    position: # [x, y, z] in m
+      value: [[0, 0, 2]]
+    angles: # rotation angle [x, y, z] in rad
+      value: [[0, 1.0472, 0]] # 0, π/3, π/3
+
+
+# Configuration of the actual calibration process. This can also be the output of a previous run.
+lighthouse_calibration:
+
+  # Restrict which base stations to detect. If empty, base stations will be detected automatically.
+  base_stations: ["bs0"]
+
+  bs0:
+    # Channel / ID of the base station.
+    id: 0
+
+    # Factory calibration offsets. Will be replaced during the calibration.
+    dt1: -0.0508728
+    dt2: 0.0464478
+
+    # Angles corresponding to the points above, measured during calibration. If present, no new measurements are taken.
+    # pairs of angles in radians
+  #   angles:
+  #    value: [[-0.0378656,0.286144], [0.317835,0.0419316], [-0.621136,-0.408655], [-0.612875,-0.272078], [-0.0201059,0.646966], [0.137243,0.752356], [0.634945,0.873896], [0.23989,0.556115]]
+
+  # bs5:
+  #   id: 5
+  #   dt1: -0.0473022
+  #   dt2: 0.0457458
+
+  #   angles:
+  #     value: [[0.206531,0.489647], [-0.330055,-0.268478], [-0.502789,0.556829], [-0.291361,0.758493], [0.840838,0.965424], [0.931102,0.896482], [0.888146,0.2792], [0.484603,0.435994]]
+
+  # Points to use when calibrating the remaining base stations. They are the same for all the base stations whose angles have not yet been measured.
+  points:
+    # (x, y) points in the track frame [m]
+    value: [[0,-0.15], [-0.6,1.05], [-1.5,-0.75], [-1.2,-1.05], [1.2,-1.05], [1.5,-0.75], [1.5,0.75], [0.6,0.15]]

@@ -1,0 +1,18 @@
+idf_component_register(
+    SRCS
+        "main.cpp"
+    INCLUDE_DIRS
+        "include"
+    REQUIRES
+        sensors
+        wifi
+        udp-client
+        communication-layer
+        control-loop
+        controllers
+        actuators
+        nvs-manager
+        state-machine
+        rtos
+        time-synchronization
+)

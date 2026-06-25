@@ -1,0 +1,23 @@
+<launch>
+
+    <arg name="simulator_config" default="$(find ros_simulator)/config/rocket_simulator.yaml" doc = "Path to simulator.yaml config. "/>
+
+    <arg name="control_input" default="control_input"/>
+    <arg name="full_state_topic" default="full_state"/>
+    <arg name="gt_state_topic" default="gt_state"/>
+
+    <arg name = "model_config" default = "$(find rocket_6_dof_model)/config/model_params.yaml" />
+
+    <!-- <group ns = "model">
+        <rosparam command = "load" file = "$(arg model_config)" />
+    </group> -->
+
+    <node pkg="ros_simulator" name="ros_simulator" type="simulation_node" output="screen">
+        <rosparam command="load" file="$(arg simulator_config)" />
+        <remap from = "~/control_input" to = "$(arg control_input)" />
+        <remap from = "~/full_state" to = "$(arg full_state_topic)" />
+        <remap from = "~/gt_state" to = "$(arg gt_state_topic)" />
+    </node>
+
+
+</launch>

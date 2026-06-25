@@ -1,0 +1,21 @@
+<launch>
+    <arg name="gt_rocket_state_topic" default="rocket_state" doc="Topic where state of the rocket is published." />
+    <arg name="est_rocket_state_topic" default="rocket_state_est" doc="Topic where state of the rocket is published." />
+
+    <arg name="visualizer_config" default="$(find rocket_visualizer)/config/rocket_visualizer.yaml" />
+
+    <arg name="namespace" default="rocket" />
+    <arg name="output_topic" default="/rocket_info" />
+
+    <node pkg="tf" type="static_transform_publisher" name="rocket_frame_broadcaster" args="0 0 0 0 -1.5708 0 crs_frame rocket_world_frame 5" />
+
+    <node pkg="rocket_visualizer" name="rocket_visualizer_node" type="rocket_visualizer_node" output="screen">
+        <rosparam command="load" file="$(arg visualizer_config)" />
+        <remap from="rocket_visualizer_node/rocket_est" to="$(arg est_rocket_state_topic)" />
+        <remap from="rocket_visualizer_node/rocket_state_gt" to="$(arg gt_rocket_state_topic)" />
+
+        <remap from="rocket_info" to="$(arg output_topic)" />
+        <param name="rocket_namespace" value="$(arg namespace)" />
+    </node>
+
+</launch>

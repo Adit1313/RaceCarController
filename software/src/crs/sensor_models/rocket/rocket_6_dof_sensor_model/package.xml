@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>rocket_6_dof_sensor_model</name>
+  <version>0.0.1</version>
+  <description>Sensor models for the 6-dof rocket model</description>
+
+  <author email="naefjo@ethz.ch">Joshua Näf</author>
+  <maintainer email="naefjo@ethz.ch">Joshua Näf</maintainer>
+
+  <license>BSD 2-Clause </license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <buildtool_depend>catkin_simple</buildtool_depend>
+
+  <depend>dynamic_models</depend>
+  <depend>rocket_6_dof_model</depend>
+  <depend>sensor_models</depend>
+
+  <depend>eigen_catkin</depend>
+  <depend>yaml_cpp_catkin</depend>
+
+
+  <export>
+  </export>
+</package>

@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<launch>
+    <arg name="config_file" default="$(find pihat_imu)/config/pihat_imu_default_params.yaml" doc="Path to the parameters yaml file" />
+    <arg name="topic_imu_accel" default="pihat_imu_node/body_acc" />
+    <arg name="topic_imu_ang_vel" default="pihat_imu_node/body_ang_vel" />
+
+    <!-- maybe: namespace -->
+    <node pkg="pihat_imu" name="pihat_imu_node" type="pihat_imu_node" output="screen">
+        <rosparam command="load" file="$(arg config_file)" />
+        <!-- topic remapping -->
+        <remap from="pihat_imu_node/body_acc" to="$(arg topic_imu_accel)" />
+        <remap from="pihat_imu_node/body_ang_vel" to="$(arg topic_imu_ang_vel)" />
+    </node>
+</launch>

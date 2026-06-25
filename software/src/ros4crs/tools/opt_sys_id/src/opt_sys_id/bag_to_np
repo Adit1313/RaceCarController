@@ -1,0 +1,379 @@
+#!/usr/bin/env python3
+"""Utility for parsing ROS bag files to NumPy binary array files used for optimization-based system identification."""
+
+import argparse
+import os
+from scipy.ndimage import median_filter
+from scipy.signal import butter, sosfiltfilt
+
+from opt_sys_id.tools import unwrap_mod2pi
+
+import rosbag
+import numpy as np
+
+
+def quaternion_to_euler_angle(w, x, y, z):
+    ysqr = y * y
+
+    t0 = +2.0 * (w * x + y * z)
+    t1 = +1.0 - 2.0 * (x * x + ysqr)
+    X = np.arctan2(t0, t1)
+
+    t2 = +2.0 * (w * y - z * x)
+    t2 = +1.0 if t2 > +1.0 else t2
+    t2 = -1.0 if t2 < -1.0 else t2
+    Y = np.arcsin(t2)
+
+    t3 = +2.0 * (w * z + x * y)
+    t4 = +1.0 - 2.0 * (ysqr + z * z)
+    Z = np.arctan2(t3, t4)
+
+    return X, Y, Z
+
+
+def file_path(string):
+    """Checks if a file exist and return the path. If the file does not exist, raise a FileNotFoundError."""
+    if os.path.isfile(string):
+        return string
+    else:
+        raise FileNotFoundError(string)
+
+
+def nan_helper(y):
+    """Helper to handle indices and logical indices of NaNs.
+
+    Input:
+        - y, 1d numpy array with possible NaNs
+    Output:
+        - nans, logical indices of NaNs
+        - index, a function, with signature indices= index(logical_indices),
+          to convert logical indices of NaNs to 'equivalent' indices
+    Example:
+        >>> # linear interpolation of NaNs
+        >>> nans, x= nan_helper(y)
+        >>> y[nans]= np.interp(x(nans), x(~nans), y[~nans])
+    """
+
+    return np.isnan(y) | np.isposinf(y), lambda z: z.nonzero()[0]
+
+
+def parse_rosbag(bagname: str, args: argparse.Namespace):
+    """Parses a ROS bag file and saves a numpy binary array file."""
+
+    filename = bagname.split("/")[-1].split(".")[0]
+    print(f"Processing bag {filename}...")
+
+    # Calculate size of measurement vector
+    n_y = 0
+    measurement_topics = []
+
+    if "qs" in args.measurements:
+        offset_qs = 0
+        n_y += 3
+        measurement_topics.append(f"/qualisys/{args.namespace}/pose")
+    if "lh" in args.measurements:
+        offset_lh = n_y
+        n_y += 8
+        measurement_topics.append(f"/{args.namespace}/lighthouse")
+    if "we" in args.measurements:
+        offset_we = n_y
+        n_y += 4
+        measurement_topics.append(f"/{args.namespace}/wheel_encoders")
+    if "imu" in args.measurements:
+        offset_imu = n_y
+        n_y += 3
+        measurement_topics.append(f"/{args.namespace}/imu")
+    if "yaw" in args.measurements:
+        offset_yaw = n_y
+        n_y += 1
+        measurement_topics.append(f"/{args.namespace}/imu")
+
+    y = np.zeros((n_y, 0))
+    t_y = []
+
+    x = np.zeros((6, 0))
+    t_x = []
+
+    u = np.zeros((2, 0))
+    t_u = []
+
+    if args.verbose:
+        print("Size of measurement vector: ", n_y)
+        print("Measurement topics: ", measurement_topics)
+
+    with rosbag.Bag(bagname, "r") as bag:
+
+        for topic, msg, ti in bag.read_messages():
+
+            # Extract state estimate into x
+            if topic.endswith("/estimation_node/best_state"):
+                # Check for multiple entries:
+                if t_x:
+                    if msg.header.stamp.to_sec() == t_x[-1]:
+                        continue
+
+                x = np.hstack(
+                    [
+                        x,
+                        np.atleast_2d(
+                            [msg.x, msg.y, msg.yaw, msg.vx_b, msg.vy_b, msg.dyaw]
+                        ).T,
+                    ]
+                )
+                t_x += [msg.header.stamp.to_sec()]
+
+            # Extract specified measurements into y, setting all entries that are not present to NaN
+            for measurement_topic in measurement_topics:
+                if topic == measurement_topic:
+                    # Check for multiple entries:
+                    if t_y:
+                        if msg.header.stamp.to_sec() == t_y[-1]:
+                            continue
+
+                    # The measurement only fills the offsets corresponding to the measurement type,
+                    # the rest is NaN and will be interpolated later
+                    y_new = np.zeros((n_y, 1)) * np.nan
+
+                    # Parse Qualisys measurements
+                    if measurement_topic.endswith("/pose"):
+                        T = msg.pose.position
+                        R = msg.pose.orientation
+                        psi = quaternion_to_euler_angle(R.w, R.x, R.y, R.z)[2]
+
+                        y_new[offset_qs : offset_qs + 3] = np.atleast_2d(
+                            [T.x, T.y, psi]
+                        ).T
+
+                    # Parse Lighthouse measurements
+                    if measurement_topic.endswith("/lighthouse"):
+                        # For now: only extract bs0 => msg.polynomial >> 1 == 0
+                        bs_id = msg.polynomial >> 1
+                        if bs_id != 0:
+                            continue
+
+                        angles = np.atleast_2d(
+                            [msg.angle_0, msg.angle_1, msg.angle_2, msg.angle_3]
+                        ).T
+
+                        # If first sweep, save to y[0:4], else save to y[4:8]
+                        if msg.first_sweep:
+                            y_new[offset_lh : offset_lh + 4] = angles
+                        else:
+                            y_new[offset_lh + 4 : offset_lh + 8] = angles
+
+                    # Parse wheel encoder measurements
+                    if measurement_topic.endswith("/wheel_encoders"):
+                        fl = msg.front_left
+                        fr = msg.front_right
+                        rl = msg.rear_left
+                        rr = msg.rear_right
+
+                        y_new[offset_we : offset_we + 4] = np.atleast_2d(
+                            [fl, fr, rl, rr]
+                        ).T
+
+                    # Parse IMU measurements
+                    if measurement_topic.endswith("/imu"):
+                        if "yaw" in args.measurements:
+                            y_new[offset_yaw] = msg.angular_velocity.z
+                        if "imu" in args.measurements:
+                            y_new[offset_imu : offset_imu + 3] = np.atleast_2d(
+                                [
+                                    msg.linear_acceleration.x,
+                                    msg.linear_acceleration.y,
+                                    msg.angular_velocity.z,
+                                ]
+                            ).T
+
+                    # Check if y_new is not all nans. If something is there, add to measurements
+                    if not np.all(np.isnan(y_new)):
+                        y = np.hstack([y, y_new])
+                        t_y += [msg.header.stamp.to_sec()]
+
+                    # Simulated moction capture data
+                    if measurement_topic.endswith("/mocap"):
+                        T = msg.transform.translation
+                        R = msg.transform.rotation
+                        psi = quaternion_to_euler_angle(R.w, R.x, R.y, R.z)[2]
+
+                        y_new[offset_qs : offset_qs + 3] = np.atleast_2d(
+                            [T.x, T.y, psi]
+                        ).T
+
+            # Extract control input into u
+            if topic.endswith("/control_input"):
+                # Check for multiple entries:
+                if t_u:
+                    if msg.header.stamp.to_sec() == t_u[-1]:
+                        continue
+
+                u = np.hstack([u, np.atleast_2d([msg.torque, msg.steer]).T])
+                t_u += [msg.header.stamp.to_sec()]
+
+    t_x = np.array(t_x)
+    t_y = np.array(t_y)
+    t_u = np.array(t_u)
+
+    # Trim y before first input
+    y = y[:, t_y > t_u[0]]
+    t_y = t_y[t_y > t_u[0]]
+
+    # Unwrap the yaw for the state estimates and Qualisys measurements
+    x[2, :] = unwrap_mod2pi(x[2, :])
+    if "qs" in args.measurements:
+        y[offset_qs + 2, :] = unwrap_mod2pi(y[offset_qs + 2, :])
+
+    # Median filter the wheel encoder measurements if they are present
+    # low-pass filter with cut-off 10Hz
+    sos = butter(2, 5, "low", fs=250, output="sos")
+
+    if "we" in args.measurements:
+        for i in range(4):
+            nans, _ = nan_helper(y[offset_we + i, :])
+            y_we_nonnan = y[offset_we + i, ~nans]
+            y_we_nonnan = sosfiltfilt(sos, y_we_nonnan)
+            y_we_nonnan = median_filter(y_we_nonnan, size=11)
+            y[offset_we + i, ~nans] = y_we_nonnan
+
+    # Median filter the Lighthouse measurements to remove outliers
+    if "lh" in args.measurements:
+        for i in range(8):
+            nans, _ = nan_helper(y[offset_lh + i, :])
+            y_lh_nonnan = y[offset_lh + i, ~nans]
+            y_lh_nonnan = median_filter(y_lh_nonnan, size=7)
+            y[offset_lh + i, ~nans] = y_lh_nonnan
+
+    # Median filter the IMU measurements to remove outliers
+    if "yaw" in args.measurements:
+        nans, _ = nan_helper(y[offset_yaw, :])
+        y_yaw_nonnan = y[offset_yaw, ~nans]
+        y_yaw_nonnan = sosfiltfilt(sos, y_yaw_nonnan)
+        y_yaw_nonnan = median_filter(y_yaw_nonnan, size=7)
+        y[offset_yaw, ~nans] = y_yaw_nonnan
+
+    # Find location of non-nans in QS/LH measurements, this will be the exported timestamps
+    nans, x_fn = nan_helper(y[offset_lh, :])
+    timestamps = ~nans
+
+    # Linearly interpolate all missing state measurements (which have NaNs)
+    for i in range(y.shape[0]):
+        nans, x_fn = nan_helper(y[i, :])
+        y[i, nans] = np.interp(x_fn(nans), x_fn(~nans), y[i, ~nans])
+
+    # Drop all measurements not in timestamps
+    y = y[:, timestamps]
+    t_y = t_y[timestamps]
+
+    # Linearly interpolate state estimates
+    t_err = np.atleast_2d(t_y).T - t_x
+    x_idx = np.array([np.argmin(i[i > 0]) for i in t_err])
+
+    x_inter = np.zeros((6, 0))
+    for i_y, i_x in enumerate(x_idx):
+        if i_x >= t_x.shape[0] - 1:
+            x_inter = np.hstack([x_inter, np.atleast_2d(x[:, i_x]).T])
+        else:
+            x_inter = np.hstack(
+                [
+                    x_inter,
+                    np.atleast_2d(
+                        x[:, i_x]
+                        + (t_y[i_y] - t_x[i_x])
+                        / (t_x[i_x + 1] - t_x[i_x])
+                        * (x[:, i_x + 1] - x[:, i_x])
+                    ).T,
+                ]
+            )
+
+    # TODO(vogellu): this is a hack to fix the yaw interpolation, but is it necessary?
+    # dyaw = y[2,0] - x_inter[2,0]
+    # R = np.array([[np.cos(dyaw), -np.sin(dyaw)], [np.sin(dyaw), np.cos(dyaw)]])
+    # x_inter[:2,:] = R@x_inter[:2,:]
+    # x_inter[:2,:] += np.atleast_2d(y[:2,0] - x_inter[:2,0]).T
+
+    # x_inter[2,:] += dyaw
+
+    # Find most recent input for each measurement
+    t_err = np.atleast_2d(t_y).T - t_u
+    u_idx = np.array([np.argmin(i[i > 0]) for i in t_err])
+
+    # dy = y[:,1:] - y[:,:-1]
+    # dt_y = t_y[1:] - t_y[:-1]
+    # dydt = dy/dt_y
+
+    du = u[:, 1:] - u[:, :-1]
+    dt_u = t_u[1:] - t_u[:-1]
+    dudt = du / dt_u
+
+    directory = os.path.join(
+        os.path.dirname(__file__), "../../datasets", "real", filename
+    )
+
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
+    print(f"Saving results under {directory}")
+    np.save(os.path.join(directory, "x"), x_inter)
+    np.save(os.path.join(directory, "u"), u[:, u_idx])
+    np.save(os.path.join(directory, "y"), y)
+    np.save(os.path.join(directory, "t"), t_y)
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Utility for parsing ROS bag files to numpy binary array files used for optimization-based system identification."
+    )
+
+    parser.add_argument(
+        "rosbags",
+        metavar="bag",
+        type=file_path,
+        nargs="+",
+        help="ROS bag files to convert to numpy binary array files.",
+    )
+
+    # Namespace for the measurements, important for Qualisys where the object name
+    # corresponds to the namespace.
+    parser.add_argument(
+        "--namespace",
+        "--ns",
+        type=str,
+        help="ROS namespace for the measurements. Default: car1",
+        default="car1",
+    )
+
+    # Supported measurement types to be parsed.
+    parser.add_argument(
+        "--measurements",
+        "--m",
+        metavar="MEASUREMENT",
+        type=str,
+        nargs="+",
+        choices=["qs", "lh", "we", "imu", "yaw"],
+        help="Measurement types to include in the dataset.",
+        default=["qs"],
+    )
+
+    parser.add_argument(
+        "--verbose",
+        "-v",
+        action="store_true",
+        help="Print additional information.",
+    )
+
+    try:
+        args = parser.parse_args()
+
+        for bagname in args.rosbags:
+            parse_rosbag(bagname, args)
+
+    except FileNotFoundError as e:
+        print(f"{e}: No such file or directory")
+        exit(-1)
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except KeyboardInterrupt:
+        pass

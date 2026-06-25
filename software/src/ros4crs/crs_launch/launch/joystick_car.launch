@@ -1,0 +1,37 @@
+<launch>
+    <!--
+        Launch file for manually controlling a car with a joystick.
+    -->
+
+    <!-- =================================================================
+                         User Input Arguments
+    ================================================================= -->
+
+    <arg name = "namespace"       default = "car1"           doc = "Namespace of all the nodes. Use this to launch different cars."/>
+    <arg name = "dev"             default = "/dev/input/js0" doc = "Path to the joystick device." />
+    <arg name = "experiment_name" default = "real_world_pid" doc = "Name of the underlying experiment to load (for EKF, etc.)." />
+
+    <!-- =================================================================
+                         Launch CRS and Joystick
+    ================================================================= -->
+
+    <include file="$(find crs_launch)/launch/run_single_car.launch">
+        <arg name = "namespace"       default = "$(arg namespace)" />
+        <arg name = "experiment_name" default = "$(arg experiment_name)" />
+
+        <!-- Human can manually backtrack -->
+        <arg name = "use_backtracker" default = "false" />
+
+        <!-- Override the controller configuration file. -->
+        <arg name = "controller_config" default = "$(find ros_controllers)/config/joystick_controller.yaml" />
+    </include>
+
+    <group ns = "$(arg namespace)">
+        <node pkg="joy" type="joy_node" name="joystick">
+            <param name="dev" type="string" value="$(arg dev)" />
+            <param name="autorepeat_rate" type="double" value="20.0" />
+            <param name="default_trig_val" type="bool" value="true" />
+        </node>
+    </group>
+
+</launch>

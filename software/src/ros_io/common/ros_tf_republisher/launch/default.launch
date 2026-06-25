@@ -1,0 +1,15 @@
+<launch>
+
+    <!-- If the republished topic rates start to drop, adjust these parameters. -->
+    <arg name="num_threads" default="0" doc="Number of threads for publishing. If 0, use number of hardware threads." />
+    <arg name="queue_size"  default="20" doc="Queue size for subscribing. Note this is a queue of all frames jointly! The less threads, the higher the queue size needs to be." />
+    <arg name="namespace"   default="mocap" doc="Namespace for the republisher node." />
+
+    <group ns="$(arg namespace)">
+        <node pkg="ros_tf_republisher" name="republisher_node" type="republisher_node" output="screen">
+            <param name="num_threads" value="$(arg num_threads)" />
+            <param name="queue_size" value="$(arg queue_size)" />
+        </node>
+    </group>
+
+</launch>

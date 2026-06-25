@@ -1,0 +1,46 @@
+<launch>
+
+<!-- <node pkg="filter" name="imu_filter" type="filter_node.py" output="screen">
+    <param name="topic" value="/imu"/>
+    <param name="msg_type" value="sensor_msgs/Imu"/>
+    <param name="filter_type" value="butterworth"/>
+    <!- - Filter Params - ->
+    <param name="cutoff" value="0.8"/>
+    <param name="order" value="4"/>
+    <param name="sample_rate" value="250"/>
+</node> -->
+
+<node pkg="filter" name="imu_filter" type="filter_node.py" output="screen">
+    <param name="topic" value="/car1/imu"/>
+    <param name="msg_type" value="sensor_msgs/Imu"/>
+    <!-- <param name="filter_type" value="low_pass"/>
+    <param name="alpha" value="0.15"/> -->
+
+    <param name="filter_type" value="butterworth"/>
+    <param name="cutoff" value="1"/>
+    <param name="order" value="2"/>
+    <param name="sample_rate" value="250"/>
+
+
+    <!-- Filter Params -->
+    <!-- <param name="filter_type" value="median"/>
+    <param name="window_size" value="5"/ -->
+
+    <!-- <param name="filter_type" value="low_pass"/>
+    <param name="alpha" value="0.1"/> -->
+
+</node>
+
+
+<node pkg="filter" name="car_wheel_speed" type="filter_node.py" output="screen">
+    <param name="topic" value="/car1/wheel_encoders"/>
+    <param name="msg_type" value="crs_msgs/car_wheel_speed"/>
+    <!-- <param name="filter_type" value="median"/>
+    <param name="window_size" value="15"/> -->
+
+    <param name="filter_type" value="butterworth"/>
+    <param name="cutoff" value="1"/>
+    <param name="order" value="2"/>
+    <param name="sample_rate" value="250"/>
+</node>
+</launch>

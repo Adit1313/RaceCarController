@@ -1,0 +1,12 @@
+idf_component_register(
+    SRCS
+        "periodic_timer.cpp"
+        "rtos.cpp"
+        "semaphore.cpp"
+    INCLUDE_DIRS
+        "include"
+    REQUIRES
+        control-loop
+        state-machine
+        udp-client
+)

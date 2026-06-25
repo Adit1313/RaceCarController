@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>pose_publisher</name>
+  <version>1.0.0</version>
+  <description>Clock utils</description>
+  <maintainer email="sabodmer@todo.todo">sabrina</maintainer>
+  <author>Sabrina Bodmer</author>
+
+  <!-- One license tag required, multiple allowed, one license per tag -->
+  <!-- Commonly used license strings: -->
+  <!--   BSD, MIT, Boost Software License, GPLv2, GPLv3, LGPLv2.1, LGPLv3 -->
+  <license>BSD 2-Clause </license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>rospy</build_depend>
+  <exec_depend>rospy</exec_depend>
+
+  <build_depend>geometry_msgs</build_depend>
+
+
+  <!-- The export tag contains other, unspecified, tags -->
+  <export>
+    <!-- Other tools can request additional information be placed here -->
+
+  </export>
+</package>

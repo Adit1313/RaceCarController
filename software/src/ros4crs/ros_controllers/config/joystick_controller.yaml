@@ -1,0 +1,9 @@
+state_type: pacejka_car
+input_type: pacejka_car
+
+controller_type: joystick
+
+# Configuration of command envelope reachable with joystick
+controller_params:
+  max_throttle: 0.8   # [% PWM]
+  max_steer: 0.35     # [rad]

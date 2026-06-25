@@ -1,0 +1,34 @@
+interface_config:
+  linear_penalty_slope: 0.1
+  load_prior_data: false
+  max_deviation: 0.35
+  max_iterations: 72
+  max_time: 10.0
+  number_of_laps: 2
+  optimal_time: 4.5
+  prior_data_path: /code/src/ros4crs/ros_mpc_autotuner/visualization/objects/26_08_2023_18_21_41/
+  real_penalty_for_max_time: 300
+  simulation: true
+  use_deviation_penalty: true
+metropolis_hastings:
+  sigma: 0.1
+optimization_config:
+  acquisition_function: SAFEOPT
+  beta: 5.0
+  constant_lengthscale: false
+  first_lap_multiplier: 1.06
+  gp_variance: 0.2
+  grid_size: 100
+  kernel_lengthscale: 0.1
+  kernel_variance: 0.5
+  lipschitz_constant: 40.0
+  method: BO
+  minimum_variance: 0.18
+  number_bo_restarts: 100
+  prior_mean: true
+  raw_samples: 2048
+  standardization_batch: 1000
+  use_ucb: true
+wml_config:
+  N: 8
+  beta: 5.0

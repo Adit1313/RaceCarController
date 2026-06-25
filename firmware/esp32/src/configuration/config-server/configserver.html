@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>CRS Car Configuration</title>
+    <style>
+        :root {
+            --accent-color: #008080;
+            --field-background: #f2f2f2;
+        }
+
+        * {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
+                Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
+
+        body {
+            margin: 10px auto;
+            width: 100%;
+            max-width: 700px;
+        }
+
+        code {
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        li {
+            list-style: none;
+        }
+
+        label {
+            font-weight: bold;
+            width: 300px;
+            display: inline-block;
+        }
+
+        /* Make labels after radio buttons shorter */
+        input[type=radio]+label {
+            width: 100px;
+        }
+
+        fieldset {
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            padding: 10px;
+            margin-bottom: 15px;
+            vertical-align: top;
+        }
+
+        legend {
+            background: #e0f0f0;
+            float: left;
+            font-weight: bold;
+            margin-top: -10px;
+            margin-left: -10px;
+            margin-bottom: 10px;
+            padding: 7px 10px;
+            width: 100%;
+        }
+
+        /* Nested fieldsets shoudld not have margins, but instead act as "separators" */
+        fieldset fieldset legend {
+            background: #e0e3f0;
+        }
+
+        input[type=text],
+        input[type=number] {
+            background: #f2f2f2;
+            padding: 5px;
+            border-style: solid 2px gray;
+            width: 250px;
+            font-size: 12px;
+        }
+
+        input[type=submit],
+        input[type=button] {
+            margin: 10px;
+            padding: 8px;
+            border: 0;
+            border-radius: 3px;
+            background-color: #aaa;
+            color: #fff;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        /* Teal background for submit button */
+        input[type=submit] {
+            background-color: #008080;
+        }
+
+        /* Make radio buttons more like segmented controls */
+        input[type=radio] {
+            display: none;  /* Hide the radio buttons */
+        }
+
+        input[type=radio]+label {
+            background-color: var(--field-background);
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            padding: 5px;
+            margin: 0;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        input[type=radio]:checked+label {
+            background-color: var(--accent-color);
+            color: #fff;
+        }
+    </style>
+    <script>
+        // Fetch current config values from car so that they are pre-filled.
+        var xmlhttp = new XMLHttpRequest();
+
+        xmlhttp.onreadystatechange = function () {
+            if (xmlhttp.readyState == XMLHttpRequest.DONE) {   // XMLHttpRequest.DONE == 4
+                if (xmlhttp.status == 200) {
+                    lines = xmlhttp.responseText.split('\n');
+                    for (let i in lines) {
+
+                        if (lines[i].startsWith("choice_")) {
+                            // handle radio buttons separately: here, the value refers to the index of the checked button
+                            line = lines[i].slice("choice_".length);
+                            arg = line.split('=')[0]
+                            val = lines[i].split('=').slice(1).join("=")
+                            document.getElementsByName(arg)[val].checked = true;
+
+                            continue;
+                        }
+
+                        arg = lines[i].split('=')[0]
+                        val = lines[i].split('=').slice(1).join("=")
+                        document.getElementsByName(arg)[0].value = val;
+                    }
+                }
+                else {
+                    alert('Could not fetch current config values. Response code is ' + xmlhttp.status);
+                }
+            }
+        };
+
+        xmlhttp.open("GET", "/config/current_config.txt", true);
+        xmlhttp.send();
+
+        function trimSteering() {
+            var trimRequest = new XMLHttpRequest();
+
+            trimRequest.onreadystatechange = function () {
+                if (trimRequest.readyState == XMLHttpRequest.DONE) {
+                    if (trimRequest.status == 200) {
+                        // will start the identification, come back in 7secs
+                        setTimeout(function () { location.reload(true); }, 7000);
+                    } else {
+                        alert('Failed to communicate with car. Response code is ' + trimRequest.status);
+                    }
+                }
+            }
+
+            trimRequest.open("PUT", "/config/trim", true);
+            trimRequest.send();
+        }
+
+        function manualSteer(action) {
+            var manualRequest = new XMLHttpRequest();
+
+            manualRequest.onreadystatechange = function () {
+                if (manualRequest.readyState == XMLHttpRequest.DONE) {
+                    if (manualRequest.status != 200) {
+                        alert('Something went wrong communicating with the car. Response code is '
+                            + manualRequest.status);
+                    }
+                }
+            }
+
+            manualRequest.open("POST", "/manual", true);
+            manualRequest.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            manualRequest.send('action=' + action);
+            manualRequest.send();
+        }
+
+        function fetchADCAndWheelEncoderValue() {
+            var adcRequest = new XMLHttpRequest();
+
+            adcRequest.onreadystatechange = function () {
+                if (adcRequest.readyState == XMLHttpRequest.DONE) {
+                    if (adcRequest.status == 200) {
+                        document.getElementsByName("adc_voltage")[0].value = adcRequest.responseText;
+                    } else {
+                        document.getElementsByName("adc_voltage")[0].value = "–";
+                    }
+                }
+            }
+
+            adcRequest.open("GET", "/steer_position", true);
+            adcRequest.send();
+
+            var wheelRequest = new XMLHttpRequest();
+
+            wheelRequest.onreadystatechange = function () {
+                if (wheelRequest.readyState == XMLHttpRequest.DONE) {
+                    if (wheelRequest.status == 200) {
+                        // Split the response by comma into the four wheel encoders, order: FL, FR, RL, RR
+                        wheelValues = wheelRequest.responseText.split(',');
+                        // Update the four wheel encoder values
+                        document.getElementsByName("wheel_encoder_front_left")[0].value = wheelValues[0];
+                        document.getElementsByName("wheel_encoder_front_right")[0].value = wheelValues[1];
+                        document.getElementsByName("wheel_encoder_rear_left")[0].value = wheelValues[2];
+                        document.getElementsByName("wheel_encoder_rear_right")[0].value = wheelValues[3];
+                    } else {
+                        document.getElementsByName("wheel_encoder")[0].value = "–";
+                    }
+                }
+            }
+
+            wheelRequest.open("GET", "/wheel_encoders", true);
+            wheelRequest.send();
+        }
+
+        window.setInterval(fetchADCAndWheelEncoderValue, 250);
+    </script>
+</head>
+
+<body>
+    <h1>CRS Car Configuration</h1>
+    <p>Any fields that are not changed will not be updated. After submitting the changes, reset the car.</p>
+    <form method="post">
+        <fieldset>
+            <legend>Wi-Fi Connectivity</legend>
+            <ol>
+                <li>
+                    <label for="ssid">Wi-Fi SSID</label>
+                    <input type="text" id="ssid" name="ssid" />
+                </li>
+                <li>
+                    <label for="password">Password</label>
+                    <input type="text" id="password" name="pwd" />
+                </li>
+            </ol>
+        </fieldset>
+        <fieldset>
+            <legend>UDP Communication</legend>
+            <ol>
+                <li>
+                    <label for="ip">IP of host</label>
+                    <input type="text" id="ip" name="ip" />
+                </li>
+                <li>
+                    <label for="port">UDP port number</label>
+                    <input type="number" id="port" name="port" />
+                </li>
+            </ol>
+        </fieldset>
+        <fieldset>
+            <legend>Control</legend>
+            <p><b>Steering controller choice:</b> Choose which controller should run.
+                Note that the <i>steer override</i> controller is always available and
+                temporarily enabled through the <code>steer_override</code> flag on CRS.</code></p>
+
+                <input type="radio" name="control_type" value="pid" id="pid">
+                <label for="pid">PID</label>
+                <input type="radio" name="control_type" value="bang-bang" id="bang-bang">
+                <label for="bang-bang">Bang-bang</label>
+
+
+
+            <p><b>Steering Controller gains:</b> These gains only apply if the controller chosen above is running.</p>
+            <p>PID-F (parallel form with filtered derivative). Larger T<sub>f</sub> values lead to more filtering.</p>
+            <p>To disable the Ti or Td terms, set them to zero.</p>
+            <ol>
+                <li>
+                    <label for="pid_p">Steer PID: Proportional gain k<sub>p</sub></label>
+                    <input type="number" id="pid_p" name="pid_p" step="0.001" lang="en" />
+                </li>
+                <li>
+                    <label for="pid_i">Steer PID: Integral gain k<sub>i</sub></label>
+                    <input type="number" id="pid_i" name="pid_i" step="0.001" lang="en" />
+                </li>
+                <li>
+                    <label for="pid_d">Steer PID: Derivative gain k<sub>d</sub></label>
+                    <input type="number" id="pid_d" name="pid_d" step="0.001" lang="en" />
+                </li>
+                <li>
+                    <label for="pid_tf">Steer PID: Derivative filter time T<sub>f</sub></label>
+                    <input type="number" id="pid_tf" name="pid_tf" step="0.001" min="0" lang="en" />
+                </li>
+            </ol>
+            <p>Steer Bang-bang controller</p>
+            <ol>
+                <li>
+                    <label for="bb_deadband">Deadband [deg]</label>
+                    <input type="number" id="bb_deadband" name="bb_deadband" step="0.01" />
+                </li>
+                <li>
+                    <label for="bb_power">Bang-bang steer torque [%]</label>
+                    <input type="number" id="bb_torque" name="bb_torque" />
+                </li>
+            </ol>
+            <p><b>Speed controller</b></p>
+            <p>The speed controller tracks speed references if sent by CRS.</p>
+            <ol>
+                <li>
+                    <label for="speed_p">Speed PID: kp term</label>
+                    <input type="number" id="speed_p" name="speed_p" step="0.001" lang="en" />
+                </li>
+                <li>
+                    <label for="speed_i">Speed PID: ki term</label>
+                    <input type="number" id="speed_i" name="speed_i" step="0.001" lang="en" />
+                </li>
+                <li>
+                    <label for="speed_d">Speed PID: kd term</label>
+                    <input type="number" id="speed_d" name="speed_d" step="0.001" lang="en" />
+                </li>
+
+        </fieldset>
+        <fieldset>
+            <legend>Hardware Configuration</legend>
+
+            <fieldset>
+                <legend>Steer Encoder</legend>
+                <p><b>General steering configuration:</b>
+                    The following values affect the internal steer mapping that the car uses to determine the position of
+                    the wheels.
+                    This affects <i>all steering controllers</i>.</i></b></< /p>
+                <ol>
+                    <li>
+                        <label for="adc_lower">ADC right steer limit</label>
+                        <input type="number" id="adc_lower" name="adc_lower" />
+                    </li>
+                    <li>
+                        <label for="adc_upper">ADC left steer limit</label>
+                        <input type="number" id="adc_upper" name="adc_upper" />
+                    </li>
+                    <li>
+                        <label for="steer_range">Steer range [deg]</label>
+                        <input type="number" id="steer_range" name="steer_range" />
+                    </li>
+                    <li>
+                        <label for="adc_voltage">Current ADC voltage</label>
+                        <input type="text" id="adc_voltage" name="adc_voltage" value="–" disabled>
+                    </li>
+                </ol>
+
+                <h4>Steer calibration</h4>
+                <p>A trimming procedure can be used to find the left/right limits. <b>Lift the front wheels</b>
+                and trigger it below. The torque can be adjusted, make sure to save the configuration first
+                when changing it (limit: 45&nbsp;% to protect the steering linkage).</p>
+                <ol>
+                    <li>
+                        <label for="steer_torque">Steer trimming torque [%]</label>
+                        <input type="number" id="steer_torque" name="steer_torque" min="0" max="45" />
+                    </li>
+                </ol>
+
+                </p>
+                <input type="button" value="Find limits" onclick="trimSteering()" />
+            </fieldset>
+
+            <fieldset>
+                <legend>Wheel Encoders</legend>
+
+                <h4>Wheel Speed Estimation</h4>
+                <p>The following parameters affect the estimate of wheels speeds and longitudinal velocity.</p>
+                <ol>
+                    <li>
+                        <label for="wheel_radius">Wheel radius [m]</label>
+                        <input type="number" id="wheel_radius" name="wheel_radius" step="0.0001" />
+                    </li>
+                    <li>
+                        <label for="wheel_magnet_count">Magnets per wheel</label>
+                        <input type="number" id="wheel_magnet_count" name="wheel_magnet_count" min="1" max="255" step="1" />
+                    </li>
+                </ol>
+                </p>
+
+                <h4>Current Wheel Speeds</h4>
+
+                <ol>
+                    <li>
+                        <label for="wheel_encoder_front_left">Front left [rad/s]</label>
+                        <input type="text" id="wheel_encoder_front_left" name="wheel_encoder_front_left" value="–" disabled>
+                    </li>
+                    <li>
+                        <label for="wheel_encoder_front_right">Front right [rad/s]</label>
+                        <input type="text" id="wheel_encoder_front_right" name="wheel_encoder_front_right" value="–" disabled>
+                    </li>
+                    <li>
+                        <label for="wheel_encoder_rear_left">Rear left [rad/s]</label>
+                        <input type="text" id="wheel_encoder_rear_left" name="wheel_encoder_rear_left" value="–" disabled>
+                    </li>
+                    <li>
+                        <label for="wheel_encoder_rear_right">Rear right [rad/s]</label>
+                        <input type="text" id="wheel_encoder_rear_right" name="wheel_encoder_rear_right" value="–" disabled>
+                    </li>
+                </ol>
+            </fieldset>
+
+            <fieldset>
+                <legend>Inertial Measurement Unit</legend>
+
+
+                <h4>IMU Measurement Range</h4>
+                The full-scale range of the IMU is configurable. Choosing a smaller range leads to less discretization
+                error and potentially less noise, but also clips measurements that fall outside of the range.
+
+                <h5>Accelerometer</h5>
+                <input type="radio" name="imu_range" id="imu_range_3g" value="3g">
+                <label for="imu_range_3g">±3g</label>
+
+                <input type="radio" name="imu_range" id="imu_range_6g" value="6g">
+                <label for="imu_range_6g">±6g</label>
+
+                <input type="radio" name="imu_range" id="imu_range_12g" value="12g">
+                <label for="imu_range_12g">±12g</label>
+
+                <input type="radio" name="imu_range" id="imu_range_24g" value="24g">
+                <label for="imu_range_24g">±24g</label>
+
+                <h5>Gyroscope</h5>
+                <input type="radio" name="gyro_range" id="gyro_range_125dps" value="125dps">
+                <label for="gyro_range_125dps">±125°/s</label>
+
+                <input type="radio" name="gyro_range" id="gyro_range_250dps" value="250dps">
+                <label for="gyro_range_250dps">±250°/s</label>
+
+                <input type="radio" name="gyro_range" id="gyro_range_500dps" value="500dps">
+                <label for="gyro_range_500dps">±500°/s</label>
+
+                <input type="radio" name="gyro_range" id="gyro_range_1000dps" value="1000dps">
+                <label for="gyro_range_1000dps">±1000°/s</label>
+
+                <input type="radio" name="gyro_range" id="gyro_range_2000dps" value="2000dps">
+                <label for="gyro_range_2000dps">±2000°/s</label>
+                </p>
+            </fieldset>
+
+            <fieldset>
+                <legend>Actuators</legend>
+                <p>The following controls can be used to verify that the car is operating correctly:</p>
+                <input type="button" value="Steer left" onclick="manualSteer('left')" />
+                <input type="button" value="Steer right" onclick="manualSteer('right')" />
+                <input type="button" value="Drive forward" onclick="manualSteer('forward')" />
+                <input type="button" value="Drive backward" onclick="manualSteer('backward')" />
+                <input type="button" value="Stop" onclick="manualSteer('stop')" />
+            </fieldset>
+
+        </fieldset>
+
+        <fieldset>
+            <legend>Software Configuration</legend>
+
+            <ol>
+                <li>
+                    <label for="software_version">Software version</label>
+                    <input type="text" id="software_version" name="software_version" value="unknown" disabled>
+                </li>
+            </ol>
+
+        </fieldset>
+
+        <input type="submit" value="Save configuration">
+    </form>
+</body>
+
+</html>

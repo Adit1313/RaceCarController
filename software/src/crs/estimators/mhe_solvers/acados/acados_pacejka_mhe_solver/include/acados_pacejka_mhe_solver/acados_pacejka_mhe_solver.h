@@ -1,0 +1,141 @@
+#ifndef ACADOS_PACEJKA_MHE_SOLVER_ACADOS_PACEJKA_MHE_SOLVER
+#define ACADOS_PACEJKA_MHE_SOLVER_ACADOS_PACEJKA_MHE_SOLVER
+
+#include "acados/utils/math.h"
+#include "acados_c/ocp_nlp_interface.h"
+#include "acados_c/external_function_interface.h"
+#include "acados_solver_pacejka_model.h"
+
+#include "mhe_solvers/pacejka_mhe_solver.h"
+#include <pacejka_model/pacejka_params.h>
+
+#include <memory>
+
+namespace mhe_solvers
+{
+namespace pacejka_solvers
+{
+class AcadosPacejkaMheSolver : public PacejkaMheSolver
+{
+private:
+  std::unique_ptr<pacejka_model_solver_capsule> acados_ocp_capsule_;
+  std::unique_ptr<ocp_nlp_config> nlp_config_;
+  std::unique_ptr<ocp_nlp_dims> nlp_dims_;
+  std::unique_ptr<ocp_nlp_in> nlp_in_;
+  std::unique_ptr<ocp_nlp_out> nlp_out_;
+  std::unique_ptr<ocp_nlp_solver> nlp_solver_;
+
+  bool use_mocap_sensor;
+  bool use_imu_sensor;
+  bool use_imu_yaw_rate_sensor;
+  bool use_wheel_encoder_sensor;
+  bool use_lighthouse_sensor;
+  int n_measurements;
+
+  /**
+   * @brief Numbers of parameters
+   *
+   */
+  const static int np_ = PACEJKA_MODEL_NP;
+
+  double mhe_parameters[np_];
+
+  /**
+   * @brief Internal function to set initial guesses for the solver output variable
+   *       This function just wraps the ocp_nlp_out_set call
+   *
+   * @param stage current stage of the mhe (0,....,horizon-1)
+   * @param type either "x" or "u"
+   * @param constraint must have same dimension as x or u (depending on type)
+   */
+  void setOutputInitialGuess(int stage, std::string type, double constraint[]);
+
+  /**
+   * @brief Internal function to parse the compiled sensor support.
+   */
+  void parseCompiledSensors();
+
+  /**
+   * @brief Get the last solution and stores it in x and u
+   *
+   * @param x states, size state dimension x horizon length
+   * @param u input, size state dimension x horizon length
+   */
+  void getLastSolution(double x[], double u[]);
+
+public:
+  AcadosPacejkaMheSolver();
+  /**
+   * @brief Sets an input bound constraint.
+   *  This function just wraps the ocp_nlp_constraints_model_set call
+   *
+   * @param stage current stage of the mhe (0,....,horizon-1)
+   * @param type either "x" or "u"
+   * @param constraint must have same dimension as x or u (depending on type)
+   */
+  void setInputBoundConstraint(int stage, std::string type, double constraint[]);
+
+  /**
+   * @brief Get the Horizon Length
+   *
+   * @return int
+   */
+  int getHorizonLength() const override;
+
+  void removeInitialState() override;
+  /**
+   * @brief Set the Initial State Constraint. The provided array must have the same length as the state dimension
+   *
+   * @param constraint
+   */
+  void setInitialState(double constraint[]) override;
+  /**
+   * @brief Sets an initial guess for the state at stage "stage" of the solver.
+   * The provided array must have the same length as the state dimension
+   *
+   * @param constraint
+   */
+  void setStateInitialGuess(int stage, double constraint[]) override;
+  /**
+   * @brief Sets an initial guess for the input at stage "stage" of the solver.
+   * The provided array must have the same length as the input dimension
+   *
+   * @param constraint
+   */
+  void setInputInitialGuess(int stage, double constraint[]) override;
+
+  /**
+   * @brief Updates the internal params for stage "stage"
+   *
+   * @param stage which stage to update the parameter [0,HorizonLength)
+   * @param model_dynamics  the model dynamics
+   * @param costs  the cost parameters
+   * @param references references point
+   */
+  void updateParams(
+      int stage, const crs_models::pacejka_model::pacejka_params& model_dynamics, const cost_values& costs,
+      const references& references,
+      std::tuple<Eigen::Matrix<double, 2, 4>, Eigen::Vector3d, Eigen::Matrix3d, double> lighthouse_params_1,
+      std::tuple<Eigen::Matrix<double, 2, 4>, Eigen::Vector3d, Eigen::Matrix3d, double> lighthouse_params_2) override;
+
+  /**
+   * @brief Solves the optimization problems and stores the solution in x and u.
+   *
+   * @param x State array or point with size N*StateDimenstion
+   * @param u Input array or point with size N*Inputdimension
+   * @return int, return code. If no error occurred, return code is zero
+   */
+  int solve(double x[], double u[]) override;
+
+  /**
+   * @brief Returns the sample period in seconds
+   *
+   * @return double
+   */
+  double getSamplePeriod() override;
+};
+
+}  // namespace pacejka_solvers
+}  // namespace mhe_solvers
+#endif /* SRC_CRS_ESTIMATORS_MHE_SOLVERS_ACADOS_ACADOS_PACEJKA_MHE_SOLVER_INCLUDE_ACADOS_PACEJKA_MHE_SOLVER_ACADOS_PACEJKA_MHE_SOLVER_H_ \
+        */

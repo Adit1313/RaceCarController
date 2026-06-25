@@ -1,0 +1,10 @@
+idf_component_register(
+    SRCS
+        "time-synchronizer.cpp"
+    INCLUDE_DIRS
+        "include"
+    REQUIRES
+        esp_netif
+        nvs-manager
+        main
+)

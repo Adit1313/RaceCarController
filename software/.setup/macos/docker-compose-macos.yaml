@@ -1,0 +1,48 @@
+name: "crs"
+services:
+  crs:
+    image: registry.ethz.ch/ics-group/projects/andrea/crs-2.0
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: crs
+    volumes:
+      - .:/code
+    environment:
+      - DISPLAY=novnc:0.0
+    depends_on:
+      - novnc
+    networks:
+      - x11
+    expose:
+      - "20210-20230/udp"
+      - "33300-33400/udp"
+    ports:
+      - "20210-20230:20210-20230/udp"
+      - "33300-33400:33300-33400/udp"
+
+  novnc:
+    image: theasp/novnc
+    environment:
+      - DISPLAY_WIDTH=1920
+      - DISPLAY_HEIGHT=1080
+      - RUN_XTERM=no
+    ports:
+      - "8080:8080"
+    networks:
+      - x11
+
+  # Starts a local NTP server so other machines can sync time.
+  ntp:
+    image: cturra/ntp
+    container_name: ntp
+    restart: always
+    ports:
+      - 123:123/udp
+    environment:
+      # Serve local time source
+      - NTP_SERVERS=127.127.1.1
+      - LOG_LEVEL=0
+
+networks:
+  x11:

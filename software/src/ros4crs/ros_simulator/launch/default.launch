@@ -1,0 +1,26 @@
+<launch>
+
+    <arg name="simulator_config" default="$(find ros_simulator)/config/pacejka_car_simulator.yaml" doc = "Path to simulator.yaml config. "/>
+
+    <arg name="control_input" default="control_input"/>
+    <arg name="mocap_topic" default="mocap"/>
+    <arg name="imu_topic" default="imu"/>
+    <arg name="imu_yaw_rate_topic" default="imu_yaw_rate"/>
+    <arg name="gt_state_topic" default="gt_state"/>
+    <arg name="wheel_encoder_topic" default="wheel_encoders"/>
+    <arg name="lighthouse_topic" default="lighthouse"/>
+
+
+    <node pkg="ros_simulator" name="ros_simulator" type="simulation_node" output="screen">
+        <rosparam command="load" file="$(arg simulator_config)" />
+        <remap from = "~/control_input" to = "$(arg control_input)" />
+        <remap from = "~/mocap" to = "$(arg mocap_topic)" />
+        <remap from = "~/imu" to = "$(arg imu_topic)" />
+        <remap from = "~/imu_yaw_rate" to = "$(arg imu_yaw_rate_topic)" />
+        <remap from = "~/wheel_encoders" to = "$(arg wheel_encoder_topic)" />
+        <remap from = "~/gt_state" to = "$(arg gt_state_topic)" />
+        <remap from="~/lighthouse"    to="$(arg lighthouse_topic)" />
+    </node>
+
+
+</launch>

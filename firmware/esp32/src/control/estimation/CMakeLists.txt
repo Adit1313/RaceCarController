@@ -1,0 +1,10 @@
+idf_component_register(
+    SRCS
+       "adc-steering-estimator.c"
+       "velocity-estimator.cpp"
+    INCLUDE_DIRS
+        "include"
+    REQUIRES
+        control-types
+        interfaces
+)

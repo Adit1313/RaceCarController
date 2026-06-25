@@ -1,0 +1,24 @@
+<launch>
+
+    <arg name="rocket_state_topic" default="controller_node/state" doc="Topic where state of the rocket is published." />
+    <arg name="rocket_input_topic" default="controller_node/control_input" doc="Topic where input from the  rocket is published." />
+    <arg name="controller_config_file" default="$(find ros_controllers)/config/rocket_controller.yaml" doc="Path to controller config .yaml file" />
+
+    <arg name="model_config" default="$(find rocket_6_dof_model)/config/model_params.yaml" />
+
+    <!-- Load the Model -->
+    <group ns="model">
+        <rosparam command="load" file="$(arg model_config)" />
+    </group>
+
+    <!-- <arg name="visualizer_topic" default="controller_node/controller_visualization" /> -->
+
+    <node pkg="ros_controllers" name="controller_node" type="controller_node" output="screen" launch-prefix="bash -c 'sleep 4; $0 $@' ">
+        <rosparam command="load" file="$(arg controller_config_file)" />
+
+        <remap from="controller_node/state" to="$(arg rocket_state_topic)" />
+        <remap from="controller_node/control_input" to="$(arg rocket_input_topic)" />
+        <!-- <remap from="controller_node/visualizer/controller_visualization" to="$(arg visualizer_topic)" /> -->
+    </node>
+
+</launch>

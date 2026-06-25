@@ -1,0 +1,45 @@
+# Description of configuration files can be found at "https://gitlab.ethz.ch/ics-group/projects/andrea/crs-2.0/-/wikis/ros-configuration"
+
+# ============ THIS IS THE GROUND TRUTH MODEL FOR SIMULATION ============
+# If using ros, paramaters located at /model
+
+# type describes what type of model we want to use / should be loaded
+type: "parafoil_4dof_discrete"
+
+# Q (process noise covariance matrix)
+Q:
+  value:
+    [
+      [0.01, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0.01, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0.01, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0.0001, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0.0001, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0.0001, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0.1, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0.1, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0.1],
+    ]
+  is_diag: false
+
+model_params:
+  # world params
+  rho: 1.000
+
+  # physical params
+  m: 122.0
+  S: 23.36
+
+  # aero params
+  C_L0: 0.502
+  C_Ldelta_s: 0.892
+  C_D0: 0.173
+  C_Ddelta_s: 1.086
+
+  # modeling params
+  T_phi: 0.994
+  K_phi: 0.504
+
+  # actuator params
+  delta_s_max: 0.5
+  delta_a_max: 2.0

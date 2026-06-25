@@ -1,0 +1,67 @@
+# High level configuration for acados solver creation
+
+solver_creation:
+  N: 40 # Time Horizon
+  Ts: 0.0166 # 100 Hz
+
+  # Note: The linear least squares cannot deal with e.g. imu measurements.
+  # It is only for the case where the measurement model is linear in the states.
+  cost_type: "NONLINEAR_LS" #"NONLINEAR_LS" # LINEAR_LS
+  sensors: ["lighthouse"] # what sensors should be considered in the cost formulation of the mhe. Options: "imu", "imu_yaw_rate", "wheel_encoders", "mocap", "lighthouse"
+
+# State Bounds
+model_bounds:
+    x_min: -10.0
+    x_max: 10.0
+
+    y_min: -10.0
+    y_max: 10.0
+
+    yaw_min: -1000.0
+    yaw_max: 1000.0
+
+    vx_min: 0.05 # Do not allow 0.0, because of numerical issues(NAN)
+    vx_max: 3.2
+
+    vy_min: -2.0
+    vy_max: 2.0
+
+    dyaw_min: -4.0
+    dyaw_max: 4.0
+
+
+    delta_min: -0.4
+    delta_max: 0.4
+
+    T_min: 0.0
+    T_max: 1.0
+
+    theta_min: 0.0
+    theta_max: 1000.0
+
+    ddelta_min: -4.0
+    ddelta_max: 4.0
+
+    dT_min: -1.0
+    dT_max: 1.0
+
+    dtheta_min: 0.0
+    dtheta_max: 3.5
+
+    w_x_min: -10.0
+    w_x_max: 10.0
+
+    w_y_min: -10.0
+    w_y_max: 10.0
+
+    w_psi_min: -10.0
+    w_psi_max: 10.0
+
+    w_vx_min: -10.0
+    w_vx_max: 10.0
+
+    w_vy_min: -10.0
+    w_vy_max: 10.0
+
+    w_omega_min: -10.0
+    w_omega_max: 10.0

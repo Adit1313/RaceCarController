@@ -1,0 +1,132 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+function init() {
+  # Setup workspace
+  catkin init
+  catkin config --extend /opt/ros/noetic \
+    --merge-devel \
+    --cmake-args -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+    -DFORCES_MPCC_SOLVER=OFF -DACADOS_MPCC_SOLVER=ON -DCAR_LINEAR_TRACK_CONSTRAINT=OFF
+  bash .setup/ubuntu/setup_ws.sh
+}
+
+function build() {
+  catkin build
+}
+
+function force_solver_gen() {
+  clean_solvers
+  # NOTE(@naefjo): forcing cmake makes sure that all the auto generated files are
+  # detected for the build step.
+  catkin build --force-cmake
+}
+
+function debug() {
+  catkin config --cmake-args -DCMAKE_BUILD_TYPE=Debug
+  build
+}
+
+function run_test() {
+  catkin run_tests --jobs=1
+}
+
+function clean_solvers() {
+  ws_root_dir=$(catkin locate)
+  find ${ws_root_dir}/src/crs/ -name lib* -type d | xargs rm -rf
+}
+
+function clean() {
+  catkin clean -y
+
+  # Clear auto-generated solver code
+  printf "[crs] Removing mpc solver libraries.\n"
+  clean_solvers
+
+  # Clear auto-generated pigpio library
+  if [ -d src/ros_io/pihat/rockpara_actuators/lib/pigpio-master ]; then
+    printf "[crs] Removing pigpio library.\n"
+    rm -rf src/ros_io/pihat/rockpara_actuators/lib/pigpio-master
+  fi
+}
+
+
+function release() {
+  catkin config --cmake-args -DCMAKE_BUILD_TYPE=Release
+  build
+}
+
+function enable_forces() {
+  catkin config -r --cmake-args -DFORCES_MPCC_SOLVER=OFF &>/dev/null
+  catkin config -a --cmake-args -DFORCES_MPCC_SOLVER=ON
+}
+
+function disable_forces() {
+  catkin config -r --cmake-args -DFORCES_MPCC_SOLVER=ON &>/dev/null
+  catkin config -a --cmake-args -DFORCES_MPCC_SOLVER=OFF
+}
+
+
+function pwd_is_root() {
+  if [[ -d src && -f README.md ]]; then
+    true
+  else
+    false
+  fi
+}
+
+function usage() {
+  printf "usage: crs <command> [-h]\n"
+  printf "\ncan only be run from the root of the crs workspace.\n\n"
+  printf "\nthere are the following commands:\n\n"
+  printf "    build:            Invokes catkin build to build the workspace. See catkin build\n"
+  printf "                      for further details.\n"
+  printf "    force_solver_gen: Rerun cmake generation step. Should fix most solver generation related\n"
+  printf "                      build issues.\n"
+  printf "    clean:            Checks if the current directory is the crs root directory. If true,\n"
+  printf "                      the workspace is cleaned similar to catkin clean. See the catkin\n"
+  printf "                      documentation for further details.\n"
+  printf "    test:             Checks if the current directory is the crs root directory. If true,\n"
+  printf "                      catkin run_tests -j=1 is invoked to build the tests.\n"
+  printf "    init:             Checks if the current directory is the crs root directory. If true,\n"
+  printf "                      initializes the catkin workspaces using catkin init commands\n"
+  printf "    enable_forces:    Also builds the FORCES dependent packages in all subsequent builds;\n"
+  printf "    disable_forces:   Disable compilation of the FORCES solver;\n"
+  printf "    debug:            Configures the build to include debugging symbols necessary gdb.\n"
+  printf "                      Also builds the code.\n"
+  printf "    release:          Configures the build to optimize the code for release.\n"
+  printf "                      Also builds the code.\n"
+}
+
+if [[ -z "${1-}" ]]; then
+  usage
+  exit 0
+fi
+
+while [[ -n "${1-}" ]]; do
+  if ! $(pwd_is_root); then
+    printf "Cannot run crs in this folder! Change to the highest-level CRS folder.\n"
+    exit 1
+  fi
+
+  case $1 in
+  init) init ;;
+  build) build ;;
+  force_solver_gen) force_solver_gen ;;
+  debug) debug ;;
+  release) release ;;
+  enable_forces) enable_forces ;;
+  disable_forces) disable_forces ;;
+  test) run_test ;;
+  clean) clean ;;
+  -h | --help)
+    usage
+    exit 0
+    ;;
+  *)
+    usage
+    exit 1
+    ;;
+  esac
+  shift
+done
