@@ -16,7 +16,7 @@
     <arg name = "control_package"     default = "ros_controllers"   doc = "Selected controller packaged. Chose from 'ros_controllers', 'rospy_controllers'" />
 
     <!-- Recording arguments  -->
-    <arg name = "record_bag"          default = "false"       doc = "if true, recoard a .bag file with all topics"/>
+    <arg name = "record_bag"          default = "false"       doc = "if true, record a .bag file with all topics"/>
     <arg name = "copy_config"         default = "false"        doc = "if true, backs up all .yaml configurations on execution" />
 
     <arg name = "run_type"            default = "sim"         doc = "identifier for run type (sim|real|...). This is used to categorize backed up runs in folders" />
