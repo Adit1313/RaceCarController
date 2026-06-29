@@ -18,10 +18,10 @@ weights:
     lower_bound: 0.0
     upper_bounds: 1000
     initial_value: 0.3
-  q:
-    lower_bound: 0.0
-    upper_bounds: 1000
-    initial_value: 3.5
+  # q:
+  #   lower_bound: 0.0
+  #   upper_bounds: 1000
+  #   initial_value: 3.5
   lag_compensation_time:
     lower_bound: 0.0
     upper_bounds: 1
@@ -52,4 +52,4 @@ weights:
     initial_value: 8.5
 
 reconfigure_names:
-    - '/car_1/controller_node'
+    - '/car_1/controller_node/controller_params'

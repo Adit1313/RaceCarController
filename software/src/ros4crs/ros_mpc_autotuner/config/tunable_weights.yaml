@@ -11,4 +11,4 @@ weights:
     initial_value: 500.0
 
 reconfigure_names:
-    - '/car_1/controller_node'
+    - '/car_1/controller_node/controller_params'
