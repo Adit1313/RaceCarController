@@ -149,10 +149,11 @@ PLOT         = True   # show plot after saving
 # Points from controller frequency:
 #   NUM_POINTS = round(LAP_TIME * CONTROL_FREQ)
 #   -> one waypoint per control cycle for the full lap
-LAP_TIME     = 8   # estimated lap time in seconds
+LAP_TIME     = 5   # estimated lap time in seconds
 CONTROL_FREQ = 30     # controller frequency in Hz  (e.g. 15, 30, 50)
 NUM_POINTS   = round(LAP_TIME * CONTROL_FREQ)
-INPUT_FILE   = Path("references/L_TRACK_REFERENCE.yaml")           # input YAML file
+# NUM_POINTS   = 50
+INPUT_FILE   = Path("references/FREIBURG_FULL_TRACK_REFERENCE.yaml")           # input YAML file
 OUTPUT_FILE  = Path(INPUT_FILE.parent / f"{INPUT_FILE.stem}_RESAMPLED_{NUM_POINTS}.yaml")  # output YAML file
 
 # ── Entry point ───────────────────────────────────────────────────────────────

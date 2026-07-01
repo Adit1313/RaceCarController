@@ -202,7 +202,7 @@ def solve_time_optimal_pacejka_lap(
     params: pm.PacejkaParams,
     *,
     # Use N=345 so the exported reference has exactly N+1=346 points.
-    N: int = 345,
+    N: int = 700,
     track_width: float = 0.4,
     vehicle_width: float = 0.05,
     torque_min: float = 0,
@@ -664,7 +664,7 @@ def _default_params() -> pm.PacejkaParams:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Pacejka time-optimal periodic lap")
 
-    parser.add_argument("--track", type=str, default="FREIBURG_L_TRACK.yaml")
+    parser.add_argument("--track", type=str, default="FREIBURG_FULL_TRACK.yaml")
 
     parser.add_argument("--N", type=int, default=350)
 
@@ -674,7 +674,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--out",
         type=str,
-        default="FB_L_30HZ.yaml"
+        default="FREIBURG_FULL_TRACK_REFERENCE.yaml"
     )
     parser.add_argument("--max_iter", type=int, default=2000,
                         help="IPOPT max iterations")

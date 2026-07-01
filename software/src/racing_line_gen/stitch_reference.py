@@ -34,7 +34,7 @@ def find_yaml_files(directory: Path) -> List[Path]:
 
 def make_output_path(directory: Path, selected_files: List[Path]) -> Path:
     """Build the output filename by concatenating the stems of the selected files."""
-    combined_name = "_".join(f.stem for f in selected_files) + ".yaml"
+    combined_name = "stitched.yaml"
     return directory / combined_name
 
 

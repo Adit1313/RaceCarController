@@ -5,11 +5,11 @@ interface_config:
   max_iterations: 72
   max_time: 10.0
   number_of_laps: 2
-  optimal_time: 4.5
+  optimal_time: 4.0
   prior_data_path: /code/src/ros4crs/ros_mpc_autotuner/visualization/objects/26_08_2023_18_21_41/
   real_penalty_for_max_time: 300
   simulation: true
-  use_deviation_penalty: true
+  use_deviation_penalty: false
 metropolis_hastings:
   sigma: 0.1
 optimization_config:
