@@ -5,6 +5,8 @@ src/dependencies/*
 
 # Ignore all experiment configuration. Use git add -f to force add newly created experiments
 experiments/**
+!experiments/pacejka_tracking_mpc
+!experiments/pacejka_tracking_mpc/**
 
 # catkin workspace files
 devel/**
