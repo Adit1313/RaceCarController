@@ -124,13 +124,6 @@ Note: the script does not smooth or blend the seams between concatenated segment
 
 ---
 
-## Requirements
-
-```bash
-pip install numpy scipy matplotlib pyyaml
-```
-`pacejka_main.py` additionally depends on the local `pacejka_model`, `pacejka_track`, `pacejka_plots`, and `pacejka_ocp` modules, and on whatever NLP solver `pacejka_ocp.solve_time_optimal_pacejka_lap` uses internally (the `max_iter` / `ipopt_print` parameter names suggest IPOPT, typically via CasADi — check `pacejka_ocp.py` for its exact dependency).
-
 ## Typical end-to-end workflow
 
 ```bash
