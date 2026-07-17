@@ -2,7 +2,7 @@ import casadi as ca
 from dataclasses import dataclass
 
 @dataclass(frozen=True)
-class PacejkaParams:
+class Params:
     lr: float; lf: float; m: float; I: float
     Df: float; Cf: float; Bf: float
     Dr: float; Cr: float; Br: float
@@ -11,7 +11,8 @@ class PacejkaParams:
     gamma: float
     eps: float
 
-def pacejka_rhs(x, u, p: PacejkaParams):
+# Dynamic bicycle model with pacejka tire forces 
+def pacejka_rhs(x, u, p: Params):
     # x = [pos_x, pos_y, yaw, v_x, v_y, yaw_rate]
     pos_x, pos_y, yaw, v_x, v_y, yaw_rate = x[0], x[1], x[2], x[3], x[4], x[5]
     torque, steer = u[0], u[1]
@@ -46,6 +47,7 @@ def pacejka_rhs(x, u, p: PacejkaParams):
     Fy = Fy_r + Fx_f*ca.sin(steer) + Fy_f*ca.cos(steer) - m*v_x*yaw_rate
     Mz = Fy_f*lf*ca.cos(steer) + Fx_f*lf*ca.sin(steer) - Fy_r*lr
 
+    # ODE
     pos_x_dot = v_x*ca.cos(yaw) - v_y*ca.sin(yaw)
     pos_y_dot = v_x*ca.sin(yaw) + v_y*ca.cos(yaw)
     yaw_dot = yaw_rate
@@ -55,6 +57,7 @@ def pacejka_rhs(x, u, p: PacejkaParams):
 
     return ca.vertcat(pos_x_dot, pos_y_dot, yaw_dot, v_x_dot, v_y_dot, yaw_rate_dot)
 
+# RK4 integrator step with variable dt
 def rk4_step(f_rhs, x, u, dt):
     k1 = f_rhs(x, u)
     k2 = f_rhs(x + dt/2*k1, u)
@@ -62,11 +65,11 @@ def rk4_step(f_rhs, x, u, dt):
     k4 = f_rhs(x + dt*k3, u)
     return x + dt/6*(k1 + 2*k2 + 2*k3 + k4)
 
-def make_pacejka_functions(p: PacejkaParams):
-    # CasADi's Python type stubs are incomplete; these calls are correct at runtime.
-    x = ca.MX.sym("x", 6)  # type: ignore[call-arg]
-    u = ca.MX.sym("u", 2)  # type: ignore[call-arg]
-    dt = ca.MX.sym("dt")   # type: ignore[call-arg]
+# build casadi functions
+def make_pacejka_functions(p: Params):
+    x = ca.MX.sym("x", 6)  
+    u = ca.MX.sym("u", 2)
+    dt = ca.MX.sym("dt")
 
     rhs_expr = pacejka_rhs(x, u, p)
     f_rhs = ca.Function("pacejka_rhs", [x, u], [rhs_expr])

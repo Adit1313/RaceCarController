@@ -2,17 +2,18 @@ state_type: pacejka_car
 input_type: pacejka_car
 
 controller_type: TRACKING_MPC
-max_rate: 30
-init_delay: 2 # time to wait for estimator to converge to init. position
+max_rate: 30 # ETH setting: 30
+init_delay: 2.0 # time to wait for estimator to converge to init. position
 
 controller_params:
   Q1: 180.0
   Q2: 160.0
   R1: 0.2
   R2: 0.3
-  lag_compensation_time: 0.03
+  lag_compensation_time: 0.03 # ETH setting: 0.02
   solver_type: ACADOS
   max_sqp_iterations: 1
+
   steer_limit: 0.4
 
 visualizer:
